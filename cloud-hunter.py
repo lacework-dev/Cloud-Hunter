@@ -101,7 +101,7 @@ def configuration(lw_env):
 		authorization_token = json_data['token']
 	else:
 		print(f"{bcolors.BOLD}{bcolors.CYAN} {{}} {bcolors.ENDC}".format(banner))
-		print(f"{bcolors.RED}[!] ERROR: Missing ~/.lacework configuration file{bcolors.ENDC}")
+		print(f"[!] {bcolors.RED}{bcolors.UNDERLINE}ERROR{bcolors.ENDC}{bcolors.RED}: Missing ~/.lacework configuration file{bcolors.ENDC}")
 		print()
 		print(f"{bcolors.RED}Please install and configure the Lacework CLI before proceeding...{bcolors.ENDC}")
 		print()
@@ -260,6 +260,8 @@ def craft_query(**arguments):
 				multi_joined_items[value]='errors'
 			multiVariableName = "ERROR_CODE"
 			joined_options['-errorCodes \"{}\"'.format(value)]='errors'
+
+	# ===== Collect and organize arguments, then finalize the query ===== #
 
 	argCount = len(arg)
 	if argCount > 1:
