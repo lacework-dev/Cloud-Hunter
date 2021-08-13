@@ -55,6 +55,7 @@ banner = f'''{bcolors.BOLD}{bcolors.CYAN}                _
 def parse_the_things():
 	parser = argparse.ArgumentParser(description = 'Dynamically generate and hunt with the Lacework Query Language (LQL) quickly and efficiently')
 	parser.add_argument('-environment', help = 'Lacework environment (will be set to "default" if not specified)', action = 'store', dest = 'lw_env')
+	parser.add_argument('-any', help = 'Include literally any keyword in an LQL query (Waring: this may return thousands of results)', action = 'store', dest = 'anything')
 	parser.add_argument('-source', help = 'Include events by source in an LQL query', action = 'store', dest = 'evtSource')
 	parser.add_argument('-event', help = 'Include specific event type in an LQL query', action = 'store', dest = 'evtName')
 	parser.add_argument('-events', help = 'Include multiple events - Important - use this format: \"\'event1\',\'event2\'\"', action = 'store', dest = 'evtNames')
@@ -66,7 +67,7 @@ def parse_the_things():
 	parser.add_argument('-errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
 	parser.add_argument('-accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
 	parser.add_argument('-hunt', help = 'Hunt by execute a raw LQL query', action = 'store', dest = 'exQuery')
-	parser.add_argument('-timeframe', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
+	parser.add_argument('-t', '--timeframe', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
 	parser.add_argument('-r', '--run', help = 'Hunt using crafted query', action = 'store_true')
 	parser.add_argument('-j', '--JSON', help = 'Export the results as raw JSON', action = 'store_true')
 	parser.add_argument('-o', help = 'Output data in CSV format', action = 'store', dest = 'filename')
@@ -125,18 +126,32 @@ def craft_query(**arguments):
 		
 		# ===== Single Variable Options ===== #
 
+		# Any Value
+		if variable == 'anything':
+			var_count += 1
+			if '!' in value:
+				joined_options['-source \'{}\''.format(value)]='any_value'
+				value = value.split("!")
+				any_value = "EVENT NOT LIKE '%{}%'".format(value[1])
+			else:
+				any_value = "EVENT LIKE '%{}%'".format(value)
+				joined_options['-source {}'.format(value)]='any_value'
+			joined_items[any_value]='any_value'
+
 		# Event Source
 		if variable == 'evtSource':
 			var_count += 1
 			if value.lower() == 'exists':
 				event_source = "EVENT_SOURCE IS NOT NULL"
+				joined_options['-source {}'.format(value)]='event_source'
 			elif '!' in value:
+				joined_options['-source \'{}\''.format(value)]='event_source'
 				value = value.split("!")
 				event_source = "EVENT_SOURCE NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_source = "EVENT_SOURCE LIKE '%{}%'".format(value)
+				joined_options['-source {}'.format(value)]='event_source'
 			joined_items[event_source]='event_source'
-			joined_options['-source {}'.format(value)]='event_source'
 
 		# Event Region
 		if variable == 'region':
@@ -145,11 +160,13 @@ def craft_query(**arguments):
 			if value.lower() in regions:
 				if value.lower() == 'exists':
 					event_region = "EVENT:awsRegion IS NOT NULL"
+					joined_options['-region {}'.format(value)]='event_region'
 				else:
 					event_region = "EVENT:awsRegion = '{}'".format(value)
+					joined_options['-region {}'.format(value)]='event_region'
 				joined_items[event_region]='event_region'
-				joined_options['-region {}'.format(value)]='event_region'
 			elif '!' in value:
+				joined_options['-region \'{}\''.format(value)]='event_region'
 				value = value.split("!")
 				if value[1] in regions:
 					event_region = "EVENT:awsRegion NOT LIKE '%{}%'".format(value[1])
@@ -171,65 +188,75 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_name = "EVENT_NAME IS NOT NULL"
+				joined_options['-event {}'.format(value)]='event_name'
 			elif '!' in value:
+				joined_options['-event \'{}\''.format(value)]='event_name'
 				value = value.split("!")
 				event_name = "EVENT_NAME NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_name = "EVENT_NAME LIKE '%{}%'".format(value)
+				joined_options['-event {}'.format(value)]='event_name'
 			joined_items[event_name]='event_name'
-			joined_options['-event {}'.format(value)]='event_name'
 		
 		# Username
 		if variable == 'username':
 			var_count += 1
 			if value.lower() == 'exists':
 				event_username = "EVENT:userIdentity.userName IS NOT NULL"
+				joined_options['-username {}'.format(value)]='event_username'
 			elif '!' in value:
+				joined_options['-username \'{}\''.format(value)]='event_username'
 				value = value.split("!")
 				event_username = "EVENT:userIdentity.userName NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_username = "EVENT:userIdentity.userName LIKE '%{}%'".format(value)
+				joined_options['-username {}'.format(value)]='event_username'
 			joined_items[event_username]='event_username'
-			joined_options['-username {}'.format(value)]='event_username'
 		
 		# Source IP
 		if variable == 'srcIp':
 			var_count += 1
 			if value.lower() == 'exists':
 				event_ip = "EVENT:sourceIPAddress IS NOT NULL"
+				joined_options['-ip {}'.format(value)]='event_ip'
 			elif '!' in value:
+				joined_options['-ip \'{}\''.format(value)]='event_ip'
 				value = value.split("!")
 				event_ip = "EVENT:sourceIPAddress NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_ip = "EVENT:sourceIPAddress = '{}'".format(value)
+				joined_options['-ip {}'.format(value)]='event_ip'
 			joined_items[event_ip]='event_ip'
-			joined_options['-ip {}'.format(value)]='event_ip'
-
+			
 		# User Agent
 		if variable == 'uaString':
 			var_count += 1
 			if value.lower() == 'exists':
 				event_ua = "EVENT:userAgent IS NOT NULL"
+				joined_options['-userAgent {}'.format(value)]='event_ua'
 			elif '!' in value:
+				joined_options['-userAgent \'{}\''.format(value)]='event_ua'
 				value = value.split("!")
 				event_ua = "EVENT:userAgent NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_ua = "EVENT:userAgent LIKE '%{}%'".format(value)
+				joined_options['-userAgent {}'.format(value)]='event_ua'
 			joined_items[event_ua]='event_ua'
-			joined_options['-userAgent {}'.format(value)]='event_ua'
 
 		# Error Code
 		if variable == 'error':
 			var_count += 1
 			if value.lower() == 'exists':
 				error_code = "ERROR_CODE IS NOT NULL"
+				joined_options['-errorCode {}'.format(value)]='error_code'
 			elif '!' in value:
+				joined_options['-errorCode \'{}\''.format(value)]='error_code'
 				value = value.split("!")
 				error_code = "ERROR_CODE NOT LIKE '%{}%'".format(value[1])
 			else:
 				error_code = "ERROR_CODE = '{}'".format(value)
+				joined_options['-errorCode {}'.format(value)]='error_code'
 			joined_items[error_code]='error_code'
-			joined_options['-errorCode {}'.format(value)]='error_code'
 
 		# Access Denied
 		if variable == 'status':
@@ -558,6 +585,8 @@ def main():
 	query_contents = {}
 	event_source = ''
 	username = ''
+	if args.anything:
+		query_contents['anything']='{}'.format(args.anything)
 	if args.region:
 		query_contents['region']='{}'.format(args.region)
 	if args.evtSource:
