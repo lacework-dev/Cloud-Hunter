@@ -109,6 +109,15 @@ Client.DryRunOperation, ListAccessKeys, ListAttachedRolePolicies, etc.
 # Note that LQL is case-sensitive
 ```
 
+### Request Parameters
+```bash
+# Hunting by request parameters to look for potential injection attacks
+./cloud-hunter.py -reqParam +
+
+# Multiple request parameters
+./cloud-hunter.py -reqParams "'+%','@%','=%','-%'"
+```
+
 ### Errors
 ```bash
 # Single Error
@@ -157,9 +166,9 @@ For any search term, append -r to execute the query and view results from the pa
 ```bash
 # For any query mentioned above, append -r to the command to execute the query and search
 
-# Default timeframe is 7-days, this can be modified with the -timeframe parameter
+# Default timeframe is 7-days, this can be modified with the -t parameter
 # Example search over 1-day:
-./cloud-hunter.py -username bob -timeframe 1 -r
+./cloud-hunter.py -username bob -t 1 -r
 
 # Multiple parameters example:
 ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r

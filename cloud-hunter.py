@@ -62,12 +62,14 @@ def parse_the_things():
 	parser.add_argument('-username', help = 'Include a username in an LQL query', action = 'store', dest = 'account')
 	parser.add_argument('-ip', help = 'Include a source IP address in an LQL query', action = 'store', dest = 'srcIp')
 	parser.add_argument('-userAgent', help = 'Include a User Agent string in an LQL query', action = 'store', dest = 'uaString')
+	parser.add_argument('-reqParam', help ='Include a Request Parameter String in an LQL query', action = 'store', dest = 'param')
+	parser.add_argument('-reqParams', help ='Include multiple Request Parameters - Important - use this format: \"\'param1\',\'param2\'\"', action = 'store', dest = 'params')
 	parser.add_argument('-region', help = 'Include region within an LQL query', action = 'store', dest = 'region')
 	parser.add_argument('-errorCode', help ='Include an error code in an LQL query', action	='store', dest = 'error')
 	parser.add_argument('-errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
 	parser.add_argument('-accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
 	parser.add_argument('-hunt', help = 'Hunt by execute a raw LQL query', action = 'store', dest = 'exQuery')
-	parser.add_argument('-t', '--timeframe', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
+	parser.add_argument('-t', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
 	parser.add_argument('-r', '--run', help = 'Hunt using crafted query', action = 'store_true')
 	parser.add_argument('-j', '--JSON', help = 'Export the results as raw JSON', action = 'store_true')
 	parser.add_argument('-o', help = 'Output data in CSV format', action = 'store', dest = 'filename')
@@ -243,6 +245,21 @@ def craft_query(**arguments):
 				joined_options['-userAgent {}'.format(value)]='event_ua'
 			joined_items[event_ua]='event_ua'
 
+		# Request Parameter
+		if variable == 'param':
+			var_count += 1
+			if value.lower() == 'exists':
+				request_param = "EVENT:requestParameters.name IS NOT NULL"
+				joined_options['-request_param {}'.format(value)]='request_param'
+			elif '!' in value:
+				joined_options['-reqParam \'{}\''.format(value)]='request_param'
+				value = value.split("!")
+				request_param = "EVENT:requestParameters.name NOT LIKE '%{}%'".format(value[1])
+			else:
+				request_param = "EVENT:requestParameters.name LIKE '%{}%'".format(value)
+				joined_options['-reqParam {}'.format(value)]='request_param'
+			joined_items[request_param]='request_param'
+
 		# Error Code
 		if variable == 'error':
 			var_count += 1
@@ -278,6 +295,15 @@ def craft_query(**arguments):
 				multi_joined_items[value]='event_value'
 			multiVariableName = "EVENT_NAME"
 			joined_options['-events \"{}\"'.format(value)]='event_value'
+
+		# Request Parameters
+		if variable == 'params':
+			var_count += 1
+			multiVariable = 1
+			for event_value in value:
+				multi_joined_items[value]='request_params'
+			multiVariableName = "EVENT:requestParameters.name"
+			joined_options['-reqParams \"{}\"'.format(value)]='request_params'
 
 		# Error Codes
 		if variable == 'errors':
@@ -404,7 +430,7 @@ def hunt(exQuery):
 	events_table = [['Event', 'Region', 'Source', 'Time', 'Type', 'Username', 'Source IP']]
 
 	if filename:
-		fields = ['Event', 'Region', 'Source', 'Time', 'Type', 'Username', 'Source IP', 'User Agent', 'Access Key ID', 'Account ID', 'Recipient Account ID', 'ARN', 'Principal ID', 'Session Context', 'Type', 'Category', 'Event ID', 'Request ID', 'Version', 'Management Event', 'Read Only', 'User Identity', 'Resources', 'Query']
+		fields = ['Event', 'Region', 'Source', 'Time', 'Type', 'Username', 'Source IP', 'User Agent', 'Access Key ID', 'Account ID', 'Recipient Account ID', 'ARN', 'Principal ID', 'Session Context', 'Type', 'Category', 'Event ID', 'Request ID', 'Version', 'Management Event', 'Read Only', 'User Identity', 'Resources', 'Request Parameters', 'TLS Details', 'Query']
 		with open(filename, "a") as csvfile:
 			csvwriter = csv.writer(csvfile)
 			csvwriter.writerow(fields)
@@ -471,6 +497,14 @@ def hunt(exQuery):
 		except:
 			event_resources = "N/A"
 		try:
+			event_requestParameters = json_data['data'][d]['EVENT']['requestParameters']
+		except:
+			event_requestParameters = "N/A"
+		try:
+			event_tlsDetails = json_data['data'][d]['EVENT']['tlsDetails']
+		except:
+			event_tlsDetails = "N/A"
+		try:
 			event_userIdentity= json_data['data'][d]['EVENT']['userIdentity']
 		except:
 			event_userIdentity = "N/A"
@@ -509,7 +543,7 @@ def hunt(exQuery):
 
 		# Output full dataset to CSV if desired
 		if filename:
-			row = [event_eventName, event_awsRegion, event_eventSource, event_eventTime, event_eventType, event_userName, event_sourceIPAddress, event_userAgent, event_accessKeyId, event_accountId, event_recipientAccountId, event_arn, event_principalId, event_sessionContext, event_type, event_eventCategory, event_eventID, event_requestID, event_eventVersion, event_managementEvent, event_readOnly, event_userIdentity, event_resources, exQuery]
+			row = [event_eventName, event_awsRegion, event_eventSource, event_eventTime, event_eventType, event_userName, event_sourceIPAddress, event_userAgent, event_accessKeyId, event_accountId, event_recipientAccountId, event_arn, event_principalId, event_sessionContext, event_type, event_eventCategory, event_eventID, event_requestID, event_eventVersion, event_managementEvent, event_readOnly, event_userIdentity, event_resources, event_requestParameters, event_tlsDetails, exQuery]
 			with open(filename, "a") as csvfile:
 				csvwriter = csv.writer(csvfile)
 				csvwriter.writerow(row)
@@ -601,6 +635,10 @@ def main():
 		query_contents['srcIp']='{}'.format(args.srcIp)
 	if args.uaString:
 		query_contents['uaString']='{}'.format(args.uaString)
+	if args.param:
+		query_contents['param']='{}'.format(args.param)
+	if args.params:
+		query_contents['params']='{}'.format(args.params)
 	if args.error:
 		query_contents['error']='{}'.format(args.error)
 	if args.errors:
