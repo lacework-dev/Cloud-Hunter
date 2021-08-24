@@ -86,6 +86,12 @@ Client.DryRunOperation, ListAccessKeys, ListAttachedRolePolicies, etc.
 ./cloud-hunter.py -events "'ListBackupVaults', 'ListBackupJobs', 'ListBackupPlans', 'ListCopyJobs', 'ListProtectedResources', 'ListRestoreJobs'"
 ```
 
+### Event Type
+```bash
+# Generate a query for specific event type
+./cloud-hunter.py -type AwsConsoleSignIn
+```
+
 ### Users
 ```bash
 # Generate a query for specific user activity
@@ -172,13 +178,27 @@ For any search term, append -r to execute the query and view results from the pa
 
 # Multiple parameters example:
 ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r
+
+# Count the hits and do not display results to the screen
+./cloud-hunter.py -username bob -r -c
 ```
 
 ### Raw Query Hunting
 ```bash
 # Execute any LQL query directly via the -hunt option
 # Example:
-./cloud-hunter.py -query "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
+./cloud-hunter.py -hunt "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
+
+# Raw hunting can be combined with any output and counting options as well...
+
+# Example counting the hits:
+./cloud-hunter.py -hunt "query" -c
+
+# Example with JSON output:
+./cloud-hunter.py -hunt "query" -j -o filename.json
+
+# Example with CSV output:
+./cloud-hunter.py -hunt "query" -o filename.csv
 ```
 
 ### Exporting Data
@@ -191,6 +211,10 @@ For any search term, append -r to execute the query and view results from the pa
 
 # Export the full query output to CSV:
 ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv
+
+# Do not display output to screen but save the data to a CSV file.
+./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv -c
+# Note - the count argument only works with CSV output.
 ```
 
 # Author

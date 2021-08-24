@@ -59,6 +59,7 @@ def parse_the_things():
 	parser.add_argument('-source', help = 'Include events by source in an LQL query', action = 'store', dest = 'evtSource')
 	parser.add_argument('-event', help = 'Include specific event type in an LQL query', action = 'store', dest = 'evtName')
 	parser.add_argument('-events', help = 'Include multiple events - Important - use this format: \"\'event1\',\'event2\'\"', action = 'store', dest = 'evtNames')
+	parser.add_argument('-type', help = 'Include a specific event type in an LQL query', action = 'store', dest = 'evtType')
 	parser.add_argument('-username', help = 'Include a username in an LQL query', action = 'store', dest = 'account')
 	parser.add_argument('-ip', help = 'Include a source IP address in an LQL query', action = 'store', dest = 'srcIp')
 	parser.add_argument('-userAgent', help = 'Include a User Agent string in an LQL query', action = 'store', dest = 'uaString')
@@ -71,6 +72,7 @@ def parse_the_things():
 	parser.add_argument('-hunt', help = 'Hunt by execute a raw LQL query', action = 'store', dest = 'exQuery')
 	parser.add_argument('-t', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
 	parser.add_argument('-r', '--run', help = 'Hunt using crafted query', action = 'store_true')
+	parser.add_argument('-c', '--count', help = 'Only count the hits and do not display the details', action = 'store_true')
 	parser.add_argument('-j', '--JSON', help = 'Export the results as raw JSON', action = 'store_true')
 	parser.add_argument('-o', help = 'Output data in CSV format', action = 'store', dest = 'filename')
 	return parser
@@ -199,6 +201,21 @@ def craft_query(**arguments):
 				event_name = "EVENT_NAME LIKE '%{}%'".format(value)
 				joined_options['-event {}'.format(value)]='event_name'
 			joined_items[event_name]='event_name'
+
+		# Event Type
+		if variable == 'evtType':
+			var_count += 1
+			if value.lower() == 'exists':
+				event_type = "EVENT:eventType::String IS NOT NULL"
+				joined_options['-type {}'.format(value)]='event_type'
+			elif '!' in value:
+				joined_options['-type \'{}\''.format(value)]='event_type'
+				value = value.split("!")
+				event_type = "EVENT:eventType::String NOT LIKE '%{}%'".format(value[1])
+			else:
+				event_type = "EVENT:eventType::String LIKE '%{}%'".format(value)
+				joined_options['-type {}'.format(value)]='event_type'
+			joined_items[event_type]='event_type'
 		
 		# Username
 		if variable == 'username':
@@ -553,59 +570,65 @@ def hunt(exQuery):
 		print(exQuery)
 		print()
 	elif event_count == 1:
-		print(f"{bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
-		print()
-		print(f"{bcolors.BOLD}Event Details{bcolors.ENDC}")
-		event_table = [['Event:', '{}'.format(event_eventName)]]
-		event_table += [['Region:', '{}'.format(event_awsRegion)]]
-		event_table += [['Source:', '{}'.format(event_eventSource)]]
-		event_table += [['Time:', '{}'.format(event_eventTime)]]
-		event_table += [['Type:', '{}'.format(event_eventType)]]
-		event_table += [['Username:', '{}'.format(event_userName)]]
-		event_table += [['Source IP:', '{}'.format(event_sourceIPAddress)]]
-		event_table += [['User Agent:', '{}'.format(event_userAgent)]]
-		event_table += [['Access Key ID:', '{}'.format(event_accessKeyId)]]
-		event_table += [['Account ID:', '{}'.format(event_accountId)]]
-		event_table += [['Recipient Account ID:', '{}'.format(event_recipientAccountId)]]
-		event_table += [['ARN:', '{}'.format(event_arn)]]
-		event_table += [['Principal ID:', '{}'.format(event_principalId)]]
-		event_table += [['Type:', '{}'.format(event_type)]]
-		event_table += [['Category:', '{}'.format(event_eventCategory)]]
-		event_table += [['Event ID:', '{}'.format(event_eventID)]]
-		event_table += [['Request ID:', '{}'.format(event_requestID)]]
-		print(tabulate(event_table))
-		print()
-		print(f"{bcolors.BOLD}Query:{bcolors.ENDC}")
-		print(exQuery)
-		print()
-		if filename:
-			print(f"{bcolors.BOLD}Event written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(filename))
-			print()
+		if count:
+			print(f"{bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
 		else:
-			print("For additional details, export event details to a file:")
-			if query_contents:
-				print(f"{bcolors.BLUE}$ ./cloud-hunter.py {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
-			else:
-				print(f"{bcolors.BLUE}$ ./cloud-hunter.py -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+			print(f"{bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
 			print()
+			print(f"{bcolors.BOLD}Event Details{bcolors.ENDC}")
+			event_table = [['Event:', '{}'.format(event_eventName)]]
+			event_table += [['Region:', '{}'.format(event_awsRegion)]]
+			event_table += [['Source:', '{}'.format(event_eventSource)]]
+			event_table += [['Time:', '{}'.format(event_eventTime)]]
+			event_table += [['Type:', '{}'.format(event_eventType)]]
+			event_table += [['Username:', '{}'.format(event_userName)]]
+			event_table += [['Source IP:', '{}'.format(event_sourceIPAddress)]]
+			event_table += [['User Agent:', '{}'.format(event_userAgent)]]
+			event_table += [['Access Key ID:', '{}'.format(event_accessKeyId)]]
+			event_table += [['Account ID:', '{}'.format(event_accountId)]]
+			event_table += [['Recipient Account ID:', '{}'.format(event_recipientAccountId)]]
+			event_table += [['ARN:', '{}'.format(event_arn)]]
+			event_table += [['Principal ID:', '{}'.format(event_principalId)]]
+			event_table += [['Type:', '{}'.format(event_type)]]
+			event_table += [['Category:', '{}'.format(event_eventCategory)]]
+			event_table += [['Event ID:', '{}'.format(event_eventID)]]
+			event_table += [['Request ID:', '{}'.format(event_requestID)]]
+			print(tabulate(event_table))
+			print()
+			print(f"{bcolors.BOLD}Query:{bcolors.ENDC}")
+			print(exQuery)
+			print()
+			if filename:
+				print(f"{bcolors.BOLD}Event written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(filename))
+				print()
+			else:
+				print("For additional details, export event details to a file:")
+				if query_contents:
+					print(f"{bcolors.BLUE}$ ./cloud-hunter.py {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
+				else:
+					print(f"{bcolors.BLUE}$ ./cloud-hunter.py -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+				print()
 	elif event_count >= 2:
-		print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period:".format(event_count,time_in_days))
-		print()
-		print(tabulate(events_table, headers='firstrow'))
-		print()
-		print(f"{bcolors.BOLD}{bcolors.CYAN}Query:{bcolors.ENDC}")
-		print(exQuery)
-		print()
-		if filename:
-			print(f"{bcolors.BOLD}{bcolors.GREEN}{{}}{bcolors.ENDC}{bcolors.BOLD} Events written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(event_count,filename))
-			print()
+		if count:
+			print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period:".format(event_count,time_in_days))
 		else:
-			print("For additional details, export event details to a file:")
-			if query_contents:
-				print(f"{bcolors.BLUE}$ ./cloud-hunter.py {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
-			else:
-				print(f"{bcolors.BLUE}$ ./cloud-hunter.py -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+			print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period:".format(event_count,time_in_days))
 			print()
+			print(tabulate(events_table, headers='firstrow'))
+			print()
+			print(f"{bcolors.BOLD}{bcolors.CYAN}Query:{bcolors.ENDC}")
+			print(exQuery)
+			print()
+			if filename:
+				print(f"{bcolors.BOLD}{bcolors.GREEN}{{}}{bcolors.ENDC}{bcolors.BOLD} Events written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(event_count,filename))
+				print()
+			else:
+				print("For additional details, export event details to a file:")
+				if query_contents:
+					print(f"{bcolors.BLUE}$ ./cloud-hunter.py {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
+				else:
+					print(f"{bcolors.BLUE}$ ./cloud-hunter.py -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+				print()
 
 def main():
 	# Argument Parsing
@@ -629,6 +652,8 @@ def main():
 		query_contents['evtName']='{}'.format(args.evtName)
 	if args.evtNames:
 		query_contents['evtNames']='{}'.format(args.evtNames)
+	if args.evtType:
+		query_contents['evtType']='{}'.format(args.evtType)
 	if args.account:
 		query_contents['username']='{}'.format(args.account)
 	if args.srcIp:
@@ -652,6 +677,13 @@ def main():
 		time_in_days = args.days
 	else:
 		time_in_days = 7
+
+	# Global Counter
+	if args.count:
+		global count
+		count = args.count
+	else:
+		count = ''
 
 	# Global File Writer
 	if args.filename:
