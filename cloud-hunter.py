@@ -74,7 +74,7 @@ def parse_the_things():
 	parser.add_argument('-r', '--run', help = 'Hunt using crafted query', action = 'store_true')
 	parser.add_argument('-c', '--count', help = 'Hunt and only count the hits, do not print the details to the screen', action = 'store_true')
 	parser.add_argument('-j', '--JSON', help = 'Export the results as raw JSON', action = 'store_true')
-	parser.add_argument('-o', help = 'Output data in CSV format', action = 'store', dest = 'filename')
+	parser.add_argument('-o', help = 'Export the results in CSV format', action = 'store', dest = 'filename')
 	return parser
 
 def configuration(lw_env):
