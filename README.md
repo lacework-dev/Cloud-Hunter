@@ -189,7 +189,10 @@ For any search term, append -r to execute the query and view results from the pa
 # Example:
 ./cloud-hunter.py -hunt "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
 
-# Raw hunting can be combined with any output and counting options as well...
+# Raw hunting can be combined with anytime, output, and counting options as well...
+
+# Example hunting over a 30-day period (default is 7-days):
+./cloud-hunter.py -hunt "query" -t 30
 
 # Example counting the hits:
 ./cloud-hunter.py -hunt "query" -c
