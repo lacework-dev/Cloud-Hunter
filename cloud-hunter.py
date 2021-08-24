@@ -72,7 +72,7 @@ def parse_the_things():
 	parser.add_argument('-hunt', help = 'Hunt by execute a raw LQL query', action = 'store', dest = 'exQuery')
 	parser.add_argument('-t', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
 	parser.add_argument('-r', '--run', help = 'Hunt using crafted query', action = 'store_true')
-	parser.add_argument('-c', '--count', help = 'Only count the hits and do not display the details', action = 'store_true')
+	parser.add_argument('-c', '--count', help = 'Hunt and only count the hits, do not print the details to the screen', action = 'store_true')
 	parser.add_argument('-j', '--JSON', help = 'Export the results as raw JSON', action = 'store_true')
 	parser.add_argument('-o', help = 'Output data in CSV format', action = 'store', dest = 'filename')
 	return parser
