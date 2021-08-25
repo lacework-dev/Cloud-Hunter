@@ -572,6 +572,7 @@ def hunt(exQuery):
 	elif event_count == 1:
 		if count:
 			print(f"{bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
+			print()
 		else:
 			print(f"{bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
 			print()
@@ -611,6 +612,7 @@ def hunt(exQuery):
 	elif event_count >= 2:
 		if count:
 			print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(event_count,time_in_days))
+			print()
 		else:
 			print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period:".format(event_count,time_in_days))
 			print()

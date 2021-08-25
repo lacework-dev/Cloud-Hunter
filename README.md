@@ -50,10 +50,10 @@ Make a note of the environments configured for use with the GO-SDK. The "default
 $ pip3 install -r requirements.txt
 
 # To run against environments other than the "default" configuration, declare using -environment:
-$ ./cloud-hunter.py -environment MyEnvironment
+$ $ ./cloud-hunter.py -environment MyEnvironment
 
 # Display the help menu
-$ ./cloud-hunter.py
+$ $ ./cloud-hunter.py
 ```
 
 # Query Generation
@@ -63,7 +63,7 @@ Leverage the included command line operators to develop queries for the Lacework
 ### Query Source
 ```bash
 # Develop query for events matching an AWS event source
-./cloud-hunter.py -source <AWS Event Source>
+$ ./cloud-hunter.py -source <AWS Event Source>
 
 # Example Event Sources:
 iam.amazonaws.com, iam, kms, ec2, s3, etc...
@@ -74,43 +74,43 @@ iam.amazonaws.com, iam, kms, ec2, s3, etc...
 ### Events
 ```bash
 # Single Event
-./cloud-hunter.py -event <AWS Event Name>
+$ ./cloud-hunter.py -event <AWS Event Name>
 
 # Example Events:
 Client.DryRunOperation, ListAccessKeys, ListAttachedRolePolicies, etc.
 
 # Multiple Events
-./cloud-hunter.py -events "'<AWS Event 1>', '<AWS Event 2>', '<AWS Event 3>'"
+$ ./cloud-hunter.py -events "'<AWS Event 1>', '<AWS Event 2>', '<AWS Event 3>'"
 
 # Example Event Chaining:
-./cloud-hunter.py -events "'ListBackupVaults', 'ListBackupJobs', 'ListBackupPlans', 'ListCopyJobs', 'ListProtectedResources', 'ListRestoreJobs'"
+$ ./cloud-hunter.py -events "'ListBackupVaults', 'ListBackupJobs', 'ListBackupPlans', 'ListCopyJobs', 'ListProtectedResources', 'ListRestoreJobs'"
 ```
 
 ### Event Type
 ```bash
 # Generate a query for specific event type
-./cloud-hunter.py -type AwsConsoleSignIn
+$ ./cloud-hunter.py -type AwsConsoleSignIn
 ```
 
 ### Users
 ```bash
 # Generate a query for specific user activity
-./cloud-hunter.py -username greg
+$ ./cloud-hunter.py -username greg
 ```
 
 ### Source IP Address
 ```bash
 # Generate a query for a source IP Address
-./cloud-hunter.py -ip 127.0.0.1
+$ ./cloud-hunter.py -ip 127.0.0.1
 ```
 
 ### User Agent String
 ```bash
 # User Agent String by keyword
-./cloud-hunter.py -userAgent aws-cli
+$ ./cloud-hunter.py -userAgent aws-cli
 
 # Full user agent string - no quotes (") and escape the spaces
-./cloud-hunter.py -userAgent aws-cli/1.19.59\ Python/3.9.5\ Darwin/20.6.0\ botocore/1.20.59
+$ ./cloud-hunter.py -userAgent aws-cli/1.19.59\ Python/3.9.5\ Darwin/20.6.0\ botocore/1.20.59
 
 # Note that LQL is case-sensitive
 ```
@@ -118,25 +118,25 @@ Client.DryRunOperation, ListAccessKeys, ListAttachedRolePolicies, etc.
 ### Request Parameters
 ```bash
 # Hunting by request parameters to look for potential injection attacks
-./cloud-hunter.py -reqParam +
+$ ./cloud-hunter.py -reqParam +
 
 # Multiple request parameters
-./cloud-hunter.py -reqParams "'+%','@%','=%','-%'"
+$ ./cloud-hunter.py -reqParams "'+%','@%','=%','-%'"
 ```
 
 ### Errors
 ```bash
 # Single Error
-./cloud-hunter.py -errorCode <AWS Error Name>
+$ ./cloud-hunter.py -errorCode <AWS Error Name>
 
 # Example Error:
 AccessDenied, Client.UnauthorizedOperation, etc.
 
 # Multiple Errors
-./cloud-hunter.py -errorCodes "'<AWS Error 1>', '<AWS Error 2>', '<AWS Error 3>'"
+$ ./cloud-hunter.py -errorCodes "'<AWS Error 1>', '<AWS Error 2>', '<AWS Error 3>'"
 
 # Example Error Chaining:
-./cloud-hunter.py -errorCodes "'AccessDenied', 'Client.UnauthorizedOperation'"
+$ ./cloud-hunter.py -errorCodes "'AccessDenied', 'Client.UnauthorizedOperation'"
 
 ```
 
@@ -145,20 +145,20 @@ AccessDenied, Client.UnauthorizedOperation, etc.
 # Query for access denied events
 # Toggle 'y' to list access denied events
 # Toggle 'n' to set error type to 'null'
-./cloud-hunter.py -accessDenied y
+$ ./cloud-hunter.py -accessDenied y
 ```
 
 ### Query Chaining
 ```bash
 # All parameters can be chained together to develop more complex and targeted queries
 # Example:
-./cloud-hunter.py -source backup -events "'ListBackupVaults', 'ListProtectedResources'" -username bob -userAgent aws-cli -accessDenied y
+$ ./cloud-hunter.py -source backup -events "'ListBackupVaults', 'ListProtectedResources'" -username bob -userAgent aws-cli -accessDenied y
 ```
 
 ### Special Queries
 ```bash
 # Filter out certain values by adding '!' to each string
-./cloud-hunter.py -username '!greg' -accessDenied y
+$ ./cloud-hunter.py -username '!greg' -accessDenied y
 
 # Check if a certain parameter exists
 cloud-hunter -username exists -errorCode Client.DryRunOperation
@@ -174,49 +174,49 @@ For any search term, append -r to execute the query and view results from the pa
 
 # Default timeframe is 7-days, this can be modified with the -t parameter
 # Example search over 1-day:
-./cloud-hunter.py -username bob -t 1 -r
+$ ./cloud-hunter.py -username bob -t 1 -r
 
 # Multiple parameters example:
-./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r
 
 # Count the hits and do not display results to the screen
-./cloud-hunter.py -username bob -r -c
+$ ./cloud-hunter.py -username bob -r -c
 ```
 
 ### Raw Query Hunting
 ```bash
 # Execute any LQL query directly via the -hunt option
 # Example:
-./cloud-hunter.py -hunt "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
+$ ./cloud-hunter.py -hunt "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
 
 # Raw hunting can be combined with anytime, output, and counting options as well...
 
 # Example hunting over a 30-day period (default is 7-days):
-./cloud-hunter.py -hunt "query" -t 30
+$ ./cloud-hunter.py -hunt "query" -t 30
 
 # Example counting the hits:
-./cloud-hunter.py -hunt "query" -c
+$ ./cloud-hunter.py -hunt "query" -c
 
 # Example with JSON output:
-./cloud-hunter.py -hunt "query" -j -o filename.json
+$ ./cloud-hunter.py -hunt "query" -j -o filename.json
 
 # Example with CSV output:
-./cloud-hunter.py -hunt "query" -o filename.csv
+$ ./cloud-hunter.py -hunt "query" -o filename.csv
 ```
 
 ### Exporting Data
 ```bash
 # View the raw query data in JSON:
-./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -j
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -j
 
 # View the raw query data in JSON and export to a file:
-./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -j -o filename.json
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -j -o filename.json
 
 # Export the full query output to CSV:
-./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv
 
 # Do not display output to screen but save the data to a CSV file.
-./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv -c
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv -c
 # Note - the count argument only works with CSV output.
 ```
 
