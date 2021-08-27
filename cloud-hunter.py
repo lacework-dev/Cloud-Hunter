@@ -19,7 +19,6 @@
 	limitations under the License.
 '''
 
-from os.path import expanduser
 from tabulate import tabulate
 from subprocess import call
 import os,sys,time,datetime,argparse,requests,json,csv,toml
@@ -372,8 +371,7 @@ def validate_query(queryValidation):
 	    print("{}".format(e))
 	print()
 	if "data" in response.text:
-		print(f"[*] {bcolors.GREEN}Query Validated{bcolors.ENDC}{bcolors.ENDC}")
-		print()
+		pass
 	else:
 		print(f"[!] {bcolors.RED}{bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC} [!]")
 		print()
