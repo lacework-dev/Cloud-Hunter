@@ -48,7 +48,7 @@ banner = f'''{bcolors.BOLD}{bcolors.CYAN}                _
 {bcolors.RED}	  _                               
 	 / `/_      _/  /_/   _  _ _/__  _
 	/_,//_//_//_/  / //_// //_'/ /_'/ {bcolors.ENDC}
-	                    Lacework Labs{bcolors.ENDC}
+	                    {bcolors.BOLD}Lacework Labs{bcolors.ENDC}
 '''
 
 def parse_the_things():
