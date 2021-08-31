@@ -394,7 +394,7 @@ def hunt(exQuery):
 	search_range = search_window_format + "T" + current_time + ".000Z"
 
 	# Request
-	execute_custom_url = "https://research.lacework.net/api/v2/Queries/execute"
+	execute_custom_url = "https://{}.lacework.net/api/v2/Queries/execute".format(lw_account)
 	payload = json.dumps({
 	  "query": {
 	    "evaluatorId": "Cloudtrail",
