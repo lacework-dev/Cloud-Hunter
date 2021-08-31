@@ -68,7 +68,7 @@ def parse_the_things():
 	parser.add_argument('-errorCode', help ='Include an error code in an LQL query', action	='store', dest = 'error')
 	parser.add_argument('-errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
 	parser.add_argument('-accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
-	parser.add_argument('-hunt', help = 'Hunt by execute a raw LQL query', action = 'store', dest = 'exQuery')
+	parser.add_argument('-hunt', help = 'Hunt by executing a raw LQL query', action = 'store', dest = 'exQuery')
 	parser.add_argument('-t', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
 	parser.add_argument('-r', '--run', help = 'Hunt using crafted query', action = 'store_true')
 	parser.add_argument('-c', '--count', help = 'Hunt and only count the hits, do not print the details to the screen', action = 'store_true')
