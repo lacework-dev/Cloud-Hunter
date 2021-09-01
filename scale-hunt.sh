@@ -51,6 +51,6 @@ else
 	for i in $(grep "\[" ~/.lacework.toml);
 		do env=$(echo $i | cut -d "[" -f 2 | cut -d "]" -f 1);
 		echo -e ${CYAN}$env${NC};
-		$1 -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv"
+		$cloud_hunter $@ -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv"
 	done
 fi
