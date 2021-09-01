@@ -29,7 +29,12 @@ then
 	echo -e "${BLUE}==============================${NC}"
 	for i in $(grep "\[" ~/.lacework.toml);
 		do env=$(echo $i | cut -d "[" -f 2 | cut -d "]" -f 1);
-		output=$($cloud_hunter $@ -environment $env);
+		if [[ "$*" != *-r* ]]
+		then
+			output=$($cloud_hunter $@ -r -environment $env);
+		else
+			output=$($cloud_hunter $@ -environment $env);
+		fi
 		if [[ "$env" == *default* ]]
 		then
 			env=$primary_env
@@ -51,6 +56,11 @@ else
 	for i in $(grep "\[" ~/.lacework.toml);
 		do env=$(echo $i | cut -d "[" -f 2 | cut -d "]" -f 1);
 		echo -e ${CYAN}$env${NC};
-		$cloud_hunter $@ -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv"
+		if [[ "$*" != *-r* ]]
+		then
+			$cloud_hunter $@ -r -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv"
+		else
+			$cloud_hunter $@ -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv"
+		fi
 	done
 fi
