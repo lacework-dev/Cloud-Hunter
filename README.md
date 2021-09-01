@@ -220,6 +220,16 @@ $ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAg
 # Note - the count argument only works with CSV output.
 ```
 
+### Hunting at Scale
+```bash
+# Leverage the scale-hunt.sh bash script to hunt across multiple organizations
+
+# Hunt for activities and count the results:
+./scale-hunt.sh -source backup -event ListBackupVaults -accessDenied y -t 10 -r -c
+
+# This leverages all environments listed within your ~/.lacework.toml file to execute queries
+```
+
 # Author
 
 Please feel free to reach out to Lacework Labs with ideas for improvement, queries, policies, issues, etc. 

@@ -564,15 +564,19 @@ def hunt(exQuery):
 				csvwriter.writerow(row)
 
 	if event_count == 0:
-		print(f"[!] {bcolors.BOLD}{bcolors.RED}No Events found over a {bcolors.ENDC}{bcolors.BOLD}{{}}{bcolors.RED}-day search period{bcolors.ENDC}".format(time_in_days))
-		print(exQuery)
-		print()
-	elif event_count == 1:
 		if count:
-			print(f"{bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
+			print(f"[!] {bcolors.BOLD}{bcolors.RED}No Events found over a {bcolors.ENDC}{bcolors.BOLD}{{}}{bcolors.RED}-day search period{bcolors.ENDC}".format(time_in_days))
 			print()
 		else:
-			print(f"{bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
+			print(f"[!] {bcolors.BOLD}{bcolors.RED}No Events found over a {bcolors.ENDC}{bcolors.BOLD}{{}}{bcolors.RED}-day search period{bcolors.ENDC}".format(time_in_days))
+			print(exQuery)
+			print()
+	elif event_count == 1:
+		if count:
+			print(f"[*] {bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
+			print()
+		else:
+			print(f"[*] {bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
 			print()
 			print(f"{bcolors.BOLD}Event Details{bcolors.ENDC}")
 			event_table = [['Event:', '{}'.format(event_eventName)]]
