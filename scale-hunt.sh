@@ -66,6 +66,14 @@ detailed_loop () {
 }
 
 echo
+if [[ $# -eq 0 ]]
+then
+    echo -e "[!] ${RED}ERROR: No arguments provided${NC}"
+    echo -e "Scale-Hunt takes the same arguments as Cloud-Hunter.py. See the script help for reference:"
+    echo -e "${CYAN}./cloud-hunter.py${NC}"
+    echo
+    exit 1
+fi
 if [[ "$*" == *-c* ]]
 then
 	printf "${CYAN}Environment${NC}	|	${CYAN}Hits${NC}\n"
