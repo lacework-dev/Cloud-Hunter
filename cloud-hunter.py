@@ -54,7 +54,7 @@ banner = f'''{bcolors.BOLD}{bcolors.CYAN}                _
 def parse_the_things():
 	parser = argparse.ArgumentParser(description = 'Dynamically generate and hunt with the Lacework Query Language (LQL) quickly and efficiently')
 	parser.add_argument('-environment', help = 'Lacework environment (will be set to "default" if not specified)', action = 'store', dest = 'lw_env')
-	parser.add_argument('-any', help = 'Include literally any keyword in an LQL query (Waring: this may return thousands of results)', action = 'store', dest = 'anything')
+	parser.add_argument('-any', help = 'Include literally any keyword in an LQL query (Waring: may return thousands of results)', action = 'store', dest = 'anything')
 	parser.add_argument('-source', help = 'Include events by source in an LQL query', action = 'store', dest = 'evtSource')
 	parser.add_argument('-event', help = 'Include specific event type in an LQL query', action = 'store', dest = 'evtName')
 	parser.add_argument('-events', help = 'Include multiple events - Important - use this format: \"\'event1\',\'event2\'\"', action = 'store', dest = 'evtNames')
@@ -607,9 +607,9 @@ def hunt(exQuery):
 			else:
 				print("For additional details, export event details to a file:")
 				if query_contents:
-					print(f"{bcolors.BLUE}$ ./cloud-hunter.py {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
+					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
 				else:
-					print(f"{bcolors.BLUE}$ ./cloud-hunter.py -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <filename.csv>{bcolors.ENDC}")
 				print()
 	elif event_count >= 2:
 		if count:
@@ -629,15 +629,19 @@ def hunt(exQuery):
 			else:
 				print("For additional details, export event details to a file:")
 				if query_contents:
-					print(f"{bcolors.BLUE}$ ./cloud-hunter.py {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
+					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
 				else:
-					print(f"{bcolors.BLUE}$ ./cloud-hunter.py -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <filename.csv>{bcolors.ENDC}")
 				print()
 
 def main():
 	# Argument Parsing
 	parser = parse_the_things()
 	args = parser.parse_args()
+
+	# cloud-hunter script
+	global script_name
+	script_name = os.path.basename(__file__)
 
 	# Global Hunting Terms
 	global query_contents
@@ -729,7 +733,7 @@ def main():
 		print(crafted_query)
 		print()
 		print("To hunt with this query, append -r during execution:")
-		print(f"{bcolors.BLUE}$ ./cloud-hunter.py {{}} -r {bcolors.ENDC}".format(cmd_options))
+		print(f"{bcolors.BLUE}$ ./{script_name} {{}} -r {bcolors.ENDC}".format(cmd_options))
 	else:
 		print(f"{{}}".format(banner))
 		print(parser.format_help())
