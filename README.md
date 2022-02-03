@@ -23,6 +23,8 @@ Works alongside the Lacework CLI and the Lacework Labs project, LQL-Boss
 
 [Lacework CLI] https://github.com/lacework/go-sdk/wiki/CLI-Documentation
 
+[LQL ATT&CK] https://github.com/lacework-dev/LQL-Attack
+
 [LQL-Boss] https://github.com/lacework-dev/LQL-Boss
 
 [Content]  https://github.com/lacework-dev/lacework-content
@@ -50,10 +52,10 @@ Make a note of the environments configured for use with the GO-SDK. The "default
 $ pip3 install -r requirements.txt
 
 # To run against environments other than the "default" configuration, declare using -environment:
-$ $ ./cloud-hunter.py -environment MyEnvironment
+$ ./cloud-hunter.py -environment MyEnvironment
 
 # Display the help menu
-$ $ ./cloud-hunter.py
+$ ./cloud-hunter.py
 ```
 
 # Query Generation
@@ -113,6 +115,27 @@ $ ./cloud-hunter.py -userAgent aws-cli
 $ ./cloud-hunter.py -userAgent aws-cli/1.19.59\ Python/3.9.5\ Darwin/20.6.0\ botocore/1.20.59
 
 # Note that LQL is case-sensitive
+```
+
+### Hostname
+```bash
+# Search ffor activities involving either a specific or relative hostname
+$ ./cloud-hunter.py -hostname pwnedhost1234
+```
+
+### Filename
+```bash
+# Search for a specific file
+$ ./cloud-hunter.py -filename potato.json
+
+# Search for all files with a specified extension
+$ ./cloud-hunter.py -filename .sh
+```
+
+### Command Line
+```bash
+# Search for any command line values
+$ ./cloud-hunter.py -cmdline netcat
 ```
 
 ### Request Parameters
@@ -189,6 +212,32 @@ $ ./cloud-hunter.py -username bob -r -c
 # Example:
 $ ./cloud-hunter.py -hunt "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
 
+# Hunting with a fully-formatted multi-line LQL rule:
+$ ./cloud-hunter.py -hunt """LaceworkLabs_CloudHunter {
+  source {
+      LW_CFG_AWS_S3_GET_BUCKET_POLICY
+  }
+  return distinct {
+    BATCH_START_TIME,
+    BATCH_END_TIME,
+    QUERY_START_TIME,
+    QUERY_END_TIME,
+    ARN,
+    API_KEY,
+    SERVICE,
+    ACCOUNT_ID,
+    ACCOUNT_ALIAS,
+    RESOURCE_TYPE,
+    RESOURCE_ID,
+    RESOURCE_REGION,
+    RESOURCE_CONFIG,
+    RESOURCE_TAGS
+  }
+}"""
+
+# Hunting with a LQL rule that is stored in a file:
+$ ./cloud-hunter.py -hunt """$(cat /path/to/file.lql)"""
+
 # Raw hunting can be combined with anytime, output, and counting options as well...
 
 # Example hunting over a 30-day period (default is 7-days):
@@ -220,9 +269,49 @@ $ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAg
 # Note - the count argument only works with CSV output.
 ```
 
+# Modules
+
+### VirusTotal Integration
+```bash
+# Leverage the ./modules/virustotal-hunt.sh bash script to hunt for files, IP's, or Domains and check results against VirusTotal
+
+# Add your VirusTotal API key to the two virustotal scripts located in the ./modules/virustotal/ directory
+# Replace the string [PLACE API KEY HERE] with your API key
+
+# Running the script without options will display the help menu
+$ ./virustotal-hunt.sh
+#(             )
+# `--(_   _)--'
+#      Y-Y
+#     /@@ \   CloudHunter
+#    /     \  >>---VT--->
+#    `--'.  \             ,
+#        |   `.__________/)
+#           Lacework Labs
+#
+# ====================[ HELP ]====================
+#
+# Hunt via Filename or File Extension (.py):
+#    $ ./virustotal-hunt -f "filename" -t "timeframe in days" -e "Lacework environment"
+#
+# Hunt via IP Address or Domain:
+#    $ ./virustotal-hunt -i "ip address" -t "timeframe in days" -e "Lacework environment"
+#
+# Filename or IP Address are required
+# Timeframe and Environment are optional
+#
+# ==================================================
+
+# Hunt for all files with a .py extension over a 180-day period:
+$ ./virustotal-hunt.sh -f .py -t 180
+
+# Hunt for any activity where an IP address is present in the logs over a single day:
+$ ./virustotal-hunt.sh -i exists -t 1
+```
+
 ### Hunting at Scale
 ```bash
-# Leverage the scale-hunt.sh bash script to hunt across multiple organizations
+# Leverage the ./modules/scale-hunt.sh bash script to hunt across multiple organizations
 
 # Hunt for activities and count the results:
 ./scale-hunt.sh -source backup -event ListBackupVaults -accessDenied y -t 10 -r -c
@@ -235,4 +324,22 @@ $ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAg
 Please feel free to reach out to Lacework Labs with ideas for improvement, queries, policies, issues, etc. 
 ```bash
 greg.foss@lacework.net  --  Lacework Labs
+```
+
+# Changelog
+
+Tracking major changes to the codebase
+```bash
+2/3/2022 - Version 1.0 Released
+- Added Newly Available LQL Parameters:
+    - hostname
+    - filename
+    - cmdline
+- New VirusTotal Integration - Check files, IPs, and Domains against VirusTotal
+- Various bug-fixes and code updates
+
+9/1/2021 - Scale Hunting
+- Added scale-hunt.sh to search across multiple Lacework environments
+
+8/11/2021 - Initial Release
 ```

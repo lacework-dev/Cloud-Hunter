@@ -10,9 +10,9 @@
 # EDIT THESE VARIABLES
 # ==============================
 # How you'd like to display the default environment within output
-primary_env='company_name'
+primary_env='default'
 # Cloud Hunter script location
-cloud_hunter='/full/path/to/cloud-hunter.py'
+cloud_hunter='../cloud-hunter.py'
 # ==============================
 
 CYAN='\033[0;36m'
@@ -69,7 +69,7 @@ echo
 if [[ $# -eq 0 ]]
 then
     echo -e "[!] ${RED}ERROR: No arguments provided${NC}"
-    echo -e "Scale-Hunt takes the same arguments as Cloud-Hunter.py. See the script help for reference:"
+    echo -e "Scale-Hunt.sh takes the same arguments as Cloud-Hunter.py. See the script help for reference:"
     echo -e "${CYAN}./cloud-hunter.py${NC}"
     echo
     exit 1

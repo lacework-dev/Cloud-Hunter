@@ -2,7 +2,7 @@
 
 # Cloud Hunter
 # Lacework Labs
-# v0.1 - August 2021
+# v1.0 - February 2022
 # greg.foss@lacework.net
 
 '''
@@ -19,6 +19,7 @@
 	limitations under the License.
 '''
 
+import pandas as pd
 from tabulate import tabulate
 from subprocess import call
 import os,sys,time,datetime,argparse,requests,json,csv,toml
@@ -68,12 +69,15 @@ def parse_the_things():
 	parser.add_argument('-errorCode', help ='Include an error code in an LQL query', action	='store', dest = 'error')
 	parser.add_argument('-errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
 	parser.add_argument('-accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
+	parser.add_argument('-hostname', help = 'Include activities tied to a hostname', action = 'store', dest = 'hostname')
+	parser.add_argument('-filename', help = 'Include activities tied to a filename', action = 'store', dest = 'filename')
+	parser.add_argument('-cmdline', help = 'Include command line items in LQL query', action = 'store', dest = 'cmdline')
 	parser.add_argument('-hunt', help = 'Hunt by executing a raw LQL query', action = 'store', dest = 'exQuery')
 	parser.add_argument('-t', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
 	parser.add_argument('-r', '--run', help = 'Hunt using crafted query', action = 'store_true')
 	parser.add_argument('-c', '--count', help = 'Hunt and only count the hits, do not print the details to the screen', action = 'store_true')
-	parser.add_argument('-j', '--JSON', help = 'Export the results as raw JSON', action = 'store_true')
-	parser.add_argument('-o', help = 'Export the results in CSV format', action = 'store', dest = 'filename')
+	parser.add_argument('-j', '--JSON', help = 'View the results as raw JSON', action = 'store_true')
+	parser.add_argument('-o', help = 'Export the results in CSV format or JSON if -j argument is passed', action = 'store', dest = 'output_filename')
 	return parser
 
 def configuration(lw_env):
@@ -117,6 +121,7 @@ def craft_query(**arguments):
 	
 	global crafted_query
 	global cmd_options
+	global cloud_trail_activity
 
 	joined_items = {}
 	joined_options = {}
@@ -127,10 +132,13 @@ def craft_query(**arguments):
 		variable = arg[0]
 		value = arg[1]
 		
+		# ============================== CloudTrailRawEvents ============================== #
+
 		# ===== Single Variable Options ===== #
 
 		# Any Value
 		if variable == 'anything':
+			cloud_trail_activity = True
 			var_count += 1
 			if '!' in value:
 				joined_options['-source \'{}\''.format(value)]='any_value'
@@ -143,6 +151,7 @@ def craft_query(**arguments):
 
 		# Event Source
 		if variable == 'evtSource':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_source = "EVENT_SOURCE IS NOT NULL"
@@ -158,6 +167,7 @@ def craft_query(**arguments):
 
 		# Event Region
 		if variable == 'region':
+			cloud_trail_activity = True
 			var_count += 1
 			regions = ('us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'af-south-1', 'ap-east-1', 'ap-south-1', 'ap-northeast-2', 'ap-southeast-1')
 			if value.lower() in regions:
@@ -188,6 +198,7 @@ def craft_query(**arguments):
 		
 		# Event Name
 		if variable == 'evtName':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_name = "EVENT_NAME IS NOT NULL"
@@ -203,6 +214,7 @@ def craft_query(**arguments):
 
 		# Event Type
 		if variable == 'evtType':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_type = "EVENT:eventType::String IS NOT NULL"
@@ -218,6 +230,7 @@ def craft_query(**arguments):
 		
 		# Username
 		if variable == 'username':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_username = "EVENT:userIdentity.userName IS NOT NULL"
@@ -233,6 +246,7 @@ def craft_query(**arguments):
 		
 		# Source IP
 		if variable == 'srcIp':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_ip = "EVENT:sourceIPAddress IS NOT NULL"
@@ -248,6 +262,7 @@ def craft_query(**arguments):
 			
 		# User Agent
 		if variable == 'uaString':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_ua = "EVENT:userAgent IS NOT NULL"
@@ -263,6 +278,7 @@ def craft_query(**arguments):
 
 		# Request Parameter
 		if variable == 'param':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				request_param = "EVENT:requestParameters.name IS NOT NULL"
@@ -278,6 +294,7 @@ def craft_query(**arguments):
 
 		# Error Code
 		if variable == 'error':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				error_code = "ERROR_CODE IS NOT NULL"
@@ -293,6 +310,7 @@ def craft_query(**arguments):
 
 		# Access Denied
 		if variable == 'status':
+			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == "y":
 				access_status = "ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation')"
@@ -305,6 +323,7 @@ def craft_query(**arguments):
 
 		# Events
 		if variable == 'evtNames':
+			cloud_trail_activity = True
 			var_count += 1
 			multiVariable = 1
 			for event_value in value:
@@ -314,6 +333,7 @@ def craft_query(**arguments):
 
 		# Request Parameters
 		if variable == 'params':
+			cloud_trail_activity = True
 			var_count += 1
 			multiVariable = 1
 			for event_value in value:
@@ -323,12 +343,78 @@ def craft_query(**arguments):
 
 		# Error Codes
 		if variable == 'errors':
+			cloud_trail_activity = True
 			var_count += 1
 			multiVariable = 1
 			for error in value:
 				multi_joined_items[value]='errors'
 			multiVariableName = "ERROR_CODE"
 			joined_options['-errorCodes \"{}\"'.format(value)]='errors'
+
+		# ============================== LW_HE_MACHINES ============================== #
+
+		if variable == 'hostname':
+			lw_data_sauce = 'LW_HE_MACHINES'
+			var_count += 1
+			if value.lower() == 'exists':
+				event_hostname = "HOSTNAME IS NOT NULL"
+				joined_options['-hostname {}'.format(value)]='hostname'
+			elif '!' in value:
+				joined_options['-hostname \'{}\''.format(value)]='hostname'
+				value = value.split("!")
+				event_hostname = "HOSTNAME NOT LIKE '%{}%'".format(value[1])
+			else:
+				event_hostname = "HOSTNAME = '{}'".format(value)
+				joined_options['-hostname {}'.format(value)]='hostname'
+			joined_items[event_hostname]='hostname'
+
+		# ============================== LW_HE_FILES ============================== #
+
+		if variable == 'filename':
+			lw_data_sauce = 'LW_HE_FILES'
+			var_count += 1
+			if value.lower() == 'exists':
+				event_filename = "FILE_NAME IS NOT NULL"
+				joined_options['-filename {}'.format(value)]='filename'
+			elif '!' in value:
+				joined_options['-filename \'{}\''.format(value)]='filename'
+				value = value.split("!")
+				event_filename = "FILE_NAME NOT LIKE '%{}%'".format(value[1])
+			else:
+				event_filename = "(CONTAINS(FILE_NAME, '{}'))".format(value)
+				joined_options['-filename {}'.format(value)]='filename'
+			joined_items[event_filename]='filename'
+
+		# ============================== LW_HA_FILE_CHANGES ============================== #
+
+		# ============================== LW_HA_DNS_REQUESTS ============================== #
+
+		# ============================== LW_HA_USER_LOGINS ============================== #
+
+		# ============================== LW_CFG_AWS ============================== #
+
+		# ============================== LW_HE_CONTAINERS ============================== #
+
+		# ============================== LW_HE_USERS ============================== #
+
+		# ============================== LW_HE_PROCESSES ============================== #
+
+		if variable == 'cmdline':
+			lw_data_sauce = 'LW_HE_PROCESSES'
+			var_count += 1
+			if value.lower() == 'exists':
+				event_cmdline = "CMDLINE IS NOT NULL"
+				joined_options['-cmdline {}'.format(value)]='cmdline'
+			elif '!' in value:
+				joined_options['-cmdline \'{}\''.format(value)]='cmdline'
+				value = value.split("!")
+				event_cmdline = "CMDLINE NOT LIKE '%{}%'".format(value[1])
+			else:
+				event_cmdline = "CMDLINE LIKE '%{}%'".format(value)
+				joined_options['-cmdline {}'.format(value)]='cmdline'
+			joined_items[event_cmdline]='cmdline'
+
+		# ============================== LW_HA_CONNECTIONS ============================== #
 
 	# ===== Collect and organize arguments, then finalize the query ===== #
 
@@ -352,14 +438,45 @@ def craft_query(**arguments):
 		cmd_options = joined_options
 
 	# Final Query
-	crafted_query = 'LaceworkLabs_AWS_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { %s } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}' % query_args
+	if cloud_trail_activity:
+		lw_data_sauce = 'CloudTrailRawEvents'
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { %s } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}' % query_args
+	else:
+		pass
+	if lw_data_sauce == 'LW_HE_MACHINES':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HE_MACHINES} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, MID, HOSTNAME, DOMAIN, KERNEL, KERNEL_RELEASE, KERNEL_VERSION, OS, OS_VERSION, OS_DESC, CPU_INFO, MEMORY_INFO, MACHINE_ID, LAST_BOOT_TIME, LAST_BOOT_REASON, DEFAULT_ROUTER, TAGS, KERNEL_ARGS, ROUTE}}' % query_args
+	elif lw_data_sauce == 'LW_HE_IMAGES':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HE_IMAGES} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, IMAGE_CREATED_TIME, MID, IMAGE_ID, CONTAINER_TYPE, AUTHOR, REPO, TAG, SIZE, VIRTUAL_SIZE, IMAGE_VERSION, ACTIVE_COUNT}}' % query_args
+	elif lw_data_sauce == 'LW_HE_FILES':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HE_FILES} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, MID, PATH, FILE_NAME, INODE, FILE_TYPE, IS_LINK, LINK_DEST_PATH, LINK_ABS_DEST_PATH, OWNER_UID, OWNER_USERNAME, OWNER_GID, METADATA_HASH, FILEDATA_HASH, SIZE, BLOCK_SIZE, BLOCK_COUNT, FILE_ACCESSED_TIME, FILE_MODIFIED_TIME, FILE_CREATED_TIME, FILE_PERMISSIONS, HARD_LINK_COUNT}}' % query_args
+	elif lw_data_sauce == 'LW_HA_FILE_CHANGES':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HA_FILE_CHANGES} FILTER { %s } RETURN DISTINCT {ACTIVITY_START_TIME, ACTIVITY_END_TIME, MID, PATH, ACTIVITY, FILEDATA_HASH, LAST_MODIFIED_TIME, SIZE}}' % query_args
+	elif lw_data_sauce == 'LW_HA_DNS_REQUESTS':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HA_DNS_REQUESTS} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, MID, SRV_IP_ADDR, HOSTNAME, HOST_IP_ADDR, TTL, PKTLEN}}' % query_args
+	elif lw_data_sauce == 'LW_HA_USER_LOGINS':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HA_USER_LOGINS} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, LOGIN_TIME, LOGOFF_TIME, EVENT_TYPE, MID, USERNAME, HOSTNAME, IP_ADDR, TTY, UID, GID}}' % query_args
+	elif lw_data_sauce == 'LW_CFG_AWS':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_CFG_AWS} FILTER { %s } RETURN DISTINCT {QUERY_START_TIME, QUERY_END_TIME, ARN, API_KEY, SERVICE, ACCOUNT_ID, ACCOUNT_ALIAS, RESOURCE_TYPE, RESOURCE_ID, RESOURCE_REGION, RESOURCE_CONFIG, RESOURCE_TAGS, STATUS, KEYS, PROPS}}' % query_args
+	elif lw_data_sauce == 'LW_HE_CONTAINERS':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HE_CONTAINERS} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, CONTAINER_START_TIME, MID, CONTAINER_ID, CONTAINER_TYPE, CONTAINER_NAME, PRIVILEGED, NETWORK_MODE, PID_MODE, IPV4, IPV6, LISTEN_PORT_MAP, VOLUME_MAP, REPO, TAG, PROPS_LABEL, PROPS_ENV}}' % query_args
+	elif lw_data_sauce == 'LW_HE_USERS':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HE_USERS} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, MID, USERNAME, PRIMARY_GROUP_NAME, OTHER_GROUP_NAMES, HOME_DIR}}' % query_args
+	elif lw_data_sauce == 'LW_HE_PROCESSES':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HE_PROCESSES} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, PROCESS_START_TIME, MID, PID_HASH, PID, USERNAME, EXE_PATH, CMDLINE, CWD, ROOT}}' % query_args
+	elif lw_data_sauce == 'LW_HA_CONNECTIONS':
+		crafted_query = 'LaceworkLabs_CloudHunter {SOURCE {LW_HA_CONNECTIONS} FILTER { %s } RETURN DISTINCT {RECORD_CREATED_TIME, CONN_START_TIME, CONN_END_TIME, MID, SRC_IP_ADDR, SRC_PORT, DST_IP_ADDR, DST_PORT, PROTOCOL, SYN, FIN, LOCAL, SESS_COUNT_IN, SESS_COUNT_OUT, PKT_PER_SESS_COUNT_IN, PKT_PER_SESS_COUNT_OUT, BYTES_PER_PKT_COUNT_IN, BYTES_PER_PKT_COUNT_OUT, SESSTIME_PER_SESS_IN, SESSTIME_PER_SESS_OUT, RESPTIME_PER_SESS_IN, RESPTIME_PER_SESS_OUT, INCOMING, OUTGOING, FIRST_KNOWN_TIME}}' % query_args
 
 def validate_query(queryValidation):
 	validation_url = "https://{}.lacework.net/api/v2/Queries/validate".format(lw_account)
-	payload = json.dumps({
-	  "queryText": "{}".format(queryValidation),
-	  "evaluatorId": "Cloudtrail"
-	})
+	if cloud_trail_activity:
+		payload = json.dumps({
+		  "queryText": "{}".format(queryValidation),
+		  "evaluatorId": "Cloudtrail"
+		})
+	else:
+		payload = json.dumps({
+		  "queryText": "{}".format(queryValidation),
+		})
 	headers = {
 	  'Authorization': authorization_token,
 	  'Content-Type': 'application/json'
@@ -395,22 +512,39 @@ def hunt(exQuery):
 
 	# Request
 	execute_custom_url = "https://{}.lacework.net/api/v2/Queries/execute".format(lw_account)
-	payload = json.dumps({
-	  "query": {
-	    "evaluatorId": "Cloudtrail",
-	    "queryText": "{}".format(exQuery)
-	  },
-	  "arguments": [
-	    {
-	      "name": "StartTimeRange",
-	      "value": "{}".format(search_range)
-	    },
-	    {
-	      "name": "EndTimeRange",
-	      "value": "{}".format(date_now)
-	    }
-	  ]
-	})
+	if cloud_trail_activity:
+		payload = json.dumps({
+			"query": {
+			  "evaluatorId": "Cloudtrail",
+			  "queryText": "{}".format(exQuery)
+			},
+			"arguments": [
+			  {
+			    "name": "StartTimeRange",
+			    "value": "{}".format(search_range)
+			  },
+			  {
+			    "name": "EndTimeRange",
+			    "value": "{}".format(date_now)
+			  }
+			]
+		})
+	else:
+		payload = json.dumps({
+		  "query": {
+		    "queryText": "{}".format(exQuery)
+		  },
+		  "arguments": [
+		    {
+		      "name": "StartTimeRange",
+		      "value": "{}".format(search_range)
+		    },
+		    {
+		      "name": "EndTimeRange",
+		      "value": "{}".format(date_now)
+		    }
+		  ]
+		})
 	headers = {
 		'Authorization': authorization_token,
 		'Content-Type': 'application/json'
@@ -420,8 +554,13 @@ def hunt(exQuery):
 	except requests.exceptions.RequestException as e:
 		print(e)
 	json_data = json.loads(response.text)
+	event_df = pd.DataFrame.from_dict(json_data['data'], orient='columns')
 	try:
-		event_count = len(json_data['data'])
+		if cloud_trail_activity:
+			event_count = len(json_data['data'])
+		else:
+			event_count = event_df.shape[0]
+			event_row_count = event_df.shape[1]
 	except:
 		print()
 		print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}ERROR{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
@@ -430,11 +569,11 @@ def hunt(exQuery):
 		quit()
 
 	if JSON:
-		if filename:
-			with open(filename, 'a', encoding='utf-8') as outfile:
+		if output_filename:
+			with open(output_filename, 'a', encoding='utf-8') as outfile:
 				json.dump(json_data, outfile, ensure_ascii=False, indent=4)
 			print()
-			print(f"{bcolors.BOLD}JSON Output written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(filename))
+			print(f"{bcolors.BOLD}JSON Output written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(output_filename))
 			print()
 			quit()
 		else:
@@ -442,126 +581,133 @@ def hunt(exQuery):
 			print(json_formatted_data)
 			quit()
 
-	events_table = [['Event', 'Region', 'Source', 'Time', 'Type', 'Username', 'Source IP']]
+	# CLOUDTRAIL SPECIFIC PARSING
+	if cloud_trail_activity:
+		events_table = [['Event', 'Region', 'Source', 'Time', 'Type', 'Username', 'Source IP']]
 
-	if filename:
-		fields = ['Event', 'Region', 'Source', 'Time', 'Type', 'Username', 'Source IP', 'User Agent', 'Access Key ID', 'Account ID', 'Recipient Account ID', 'ARN', 'Principal ID', 'Session Context', 'Type', 'Category', 'Event ID', 'Request ID', 'Version', 'Management Event', 'Read Only', 'User Identity', 'Resources', 'Request Parameters', 'TLS Details', 'Query']
-		with open(filename, "a") as csvfile:
-			csvwriter = csv.writer(csvfile)
-			csvwriter.writerow(fields)
-
-	for d in range(event_count):
-		try:
-			event_awsRegion = json_data['data'][d]['EVENT']['awsRegion']
-		except:
-			event_awsRegion = "N/A"
-		try:
-			event_eventCategory = json_data['data'][d]['EVENT']['eventCategory']
-		except:
-			event_eventCategory = "N/A"
-		try:
-			event_eventID = json_data['data'][d]['EVENT']['eventID']
-		except:
-			event_eventID = "N/A"
-		try:
-			event_eventName = json_data['data'][d]['EVENT']['eventName']
-		except:
-			event_eventName = "N/A"
-		try:
-			event_eventSource = json_data['data'][d]['EVENT']['eventSource']
-		except:
-			event_eventSource = "N/A"
-		try:
-			event_eventTime = json_data['data'][d]['EVENT']['eventTime']
-		except:
-			event_eventTime = "N/A"
-		try:
-			event_eventType = json_data['data'][d]['EVENT']['eventType']
-		except:
-			event_eventType = "N/A"
-		try:
-			event_eventVersion = json_data['data'][d]['EVENT']['eventVersion']
-		except:
-			event_eventVersion = "N/A"
-		try:
-			event_managementEvent = json_data['data'][d]['EVENT']['managementEvent']
-		except:
-			event_managementEvent = "N/A"
-		try:
-			event_readOnly = json_data['data'][d]['EVENT']['readOnly']
-		except:
-			event_readOnly = "N/A"
-		try:
-			event_recipientAccountId = json_data['data'][d]['EVENT']['recipientAccountId']
-		except:
-			event_recipientAccountId = "N/A"
-		try:
-			event_requestID = json_data['data'][d]['EVENT']['requestID']
-		except:
-			event_requestID = "N/A"
-		try:
-			event_sourceIPAddress = json_data['data'][d]['EVENT']['sourceIPAddress']
-		except:
-			event_sourceIPAddress = "N/A"
-		try:
-			event_userAgent = json_data['data'][d]['EVENT']['userAgent']
-		except:
-			event_userAgent = "N/A"
-		try:
-			event_resources = json_data['data'][d]['EVENT']['resources']
-		except:
-			event_resources = "N/A"
-		try:
-			event_requestParameters = json_data['data'][d]['EVENT']['requestParameters']
-		except:
-			event_requestParameters = "N/A"
-		try:
-			event_tlsDetails = json_data['data'][d]['EVENT']['tlsDetails']
-		except:
-			event_tlsDetails = "N/A"
-		try:
-			event_userIdentity= json_data['data'][d]['EVENT']['userIdentity']
-		except:
-			event_userIdentity = "N/A"
-		try:
-			event_accountId = json_data['data'][d]['EVENT']['userIdentity']['accountId']
-		except:
-			event_accountId = "N/A"
-		try:
-			event_arn = json_data['data'][d]['EVENT']['userIdentity']['arn']
-		except:
-			event_arn = "N/A"
-		try:
-			event_principalId = json_data['data'][d]['EVENT']['userIdentity']['principalId']
-		except:
-			event_principalId = "N/A"
-		try:
-			event_type = json_data['data'][d]['EVENT']['userIdentity']['type']
-		except:
-			event_type = "N/A"
-		try:
-			event_userName = json_data['data'][d]['EVENT']['userIdentity']['userName']
-		except:
-			event_userName = "N/A"
-		try:
-			event_accessKeyId = json_data['data'][d]['EVENT']['userIdentity']['accessKeyId']
-		except:
-			event_accessKeyId = "N/A"
-		try:
-			event_sessionContext = json_data['data'][d]['EVENT']['userIdentity']['sessionContext']
-		except:
-			event_sessionContext = "N/A"
-
-		# Append JSON Data to Table for printing to screen
-		if event_count >= 2:
-			events_table += [[event_eventName, event_awsRegion, event_eventSource, event_eventTime, event_eventType, event_userName, event_sourceIPAddress]]
-
-		# Output full dataset to CSV if desired
-		if filename:
-			row = [event_eventName, event_awsRegion, event_eventSource, event_eventTime, event_eventType, event_userName, event_sourceIPAddress, event_userAgent, event_accessKeyId, event_accountId, event_recipientAccountId, event_arn, event_principalId, event_sessionContext, event_type, event_eventCategory, event_eventID, event_requestID, event_eventVersion, event_managementEvent, event_readOnly, event_userIdentity, event_resources, event_requestParameters, event_tlsDetails, exQuery]
-			with open(filename, "a") as csvfile:
+		if output_filename:
+			fields = ['Event', 'Region', 'Source', 'Time', 'Type', 'Username', 'Source IP', 'User Agent', 'Access Key ID', 'Account ID', 'Recipient Account ID', 'ARN', 'Principal ID', 'Session Context', 'Type', 'Category', 'Event ID', 'Request ID', 'Version', 'Management Event', 'Read Only', 'User Identity', 'Resources', 'Request Parameters', 'TLS Details', 'Query']
+			with open(output_filename, "a") as csvfile:
 				csvwriter = csv.writer(csvfile)
-				csvwriter.writerow(row)
+				csvwriter.writerow(fields)
+
+		for d in range(event_count):
+			try:
+				event_awsRegion = json_data['data'][d]['EVENT']['awsRegion']
+			except:
+				event_awsRegion = "N/A"
+			try:
+				event_eventCategory = json_data['data'][d]['EVENT']['eventCategory']
+			except:
+				event_eventCategory = "N/A"
+			try:
+				event_eventID = json_data['data'][d]['EVENT']['eventID']
+			except:
+				event_eventID = "N/A"
+			try:
+				event_eventName = json_data['data'][d]['EVENT']['eventName']
+			except:
+				event_eventName = "N/A"
+			try:
+				event_eventSource = json_data['data'][d]['EVENT']['eventSource']
+			except:
+				event_eventSource = "N/A"
+			try:
+				event_eventTime = json_data['data'][d]['EVENT']['eventTime']
+			except:
+				event_eventTime = "N/A"
+			try:
+				event_eventType = json_data['data'][d]['EVENT']['eventType']
+			except:
+				event_eventType = "N/A"
+			try:
+				event_eventVersion = json_data['data'][d]['EVENT']['eventVersion']
+			except:
+				event_eventVersion = "N/A"
+			try:
+				event_managementEvent = json_data['data'][d]['EVENT']['managementEvent']
+			except:
+				event_managementEvent = "N/A"
+			try:
+				event_readOnly = json_data['data'][d]['EVENT']['readOnly']
+			except:
+				event_readOnly = "N/A"
+			try:
+				event_recipientAccountId = json_data['data'][d]['EVENT']['recipientAccountId']
+			except:
+				event_recipientAccountId = "N/A"
+			try:
+				event_requestID = json_data['data'][d]['EVENT']['requestID']
+			except:
+				event_requestID = "N/A"
+			try:
+				event_sourceIPAddress = json_data['data'][d]['EVENT']['sourceIPAddress']
+			except:
+				event_sourceIPAddress = "N/A"
+			try:
+				event_userAgent = json_data['data'][d]['EVENT']['userAgent']
+			except:
+				event_userAgent = "N/A"
+			try:
+				event_resources = json_data['data'][d]['EVENT']['resources']
+			except:
+				event_resources = "N/A"
+			try:
+				event_requestParameters = json_data['data'][d]['EVENT']['requestParameters']
+			except:
+				event_requestParameters = "N/A"
+			try:
+				event_tlsDetails = json_data['data'][d]['EVENT']['tlsDetails']
+			except:
+				event_tlsDetails = "N/A"
+			try:
+				event_userIdentity= json_data['data'][d]['EVENT']['userIdentity']
+			except:
+				event_userIdentity = "N/A"
+			try:
+				event_accountId = json_data['data'][d]['EVENT']['userIdentity']['accountId']
+			except:
+				event_accountId = "N/A"
+			try:
+				event_arn = json_data['data'][d]['EVENT']['userIdentity']['arn']
+			except:
+				event_arn = "N/A"
+			try:
+				event_principalId = json_data['data'][d]['EVENT']['userIdentity']['principalId']
+			except:
+				event_principalId = "N/A"
+			try:
+				event_type = json_data['data'][d]['EVENT']['userIdentity']['type']
+			except:
+				event_type = "N/A"
+			try:
+				event_userName = json_data['data'][d]['EVENT']['userIdentity']['userName']
+			except:
+				event_userName = "N/A"
+			try:
+				event_accessKeyId = json_data['data'][d]['EVENT']['userIdentity']['accessKeyId']
+			except:
+				event_accessKeyId = "N/A"
+			try:
+				event_sessionContext = json_data['data'][d]['EVENT']['userIdentity']['sessionContext']
+			except:
+				event_sessionContext = "N/A"
+
+			# Append JSON Data to Table for printing to screen
+			if event_count >= 2:
+				events_table += [[event_eventName, event_awsRegion, event_eventSource, event_eventTime, event_eventType, event_userName, event_sourceIPAddress]]
+
+			# Output full dataset to CSV if desired
+			if output_filename:
+				row = [event_eventName, event_awsRegion, event_eventSource, event_eventTime, event_eventType, event_userName, event_sourceIPAddress, event_userAgent, event_accessKeyId, event_accountId, event_recipientAccountId, event_arn, event_principalId, event_sessionContext, event_type, event_eventCategory, event_eventID, event_requestID, event_eventVersion, event_managementEvent, event_readOnly, event_userIdentity, event_resources, event_requestParameters, event_tlsDetails, exQuery]
+				with open(output_filename, "a") as csvfile:
+					csvwriter = csv.writer(csvfile)
+					csvwriter.writerow(row)
+
+	# FOR EVERYTHING BUT CLOUDTRAIL
+	else:
+		if output_filename:
+			event_df.to_csv(output_filename, index=False)
 
 	if event_count == 0:
 		if count:
@@ -579,37 +725,43 @@ def hunt(exQuery):
 			print(f"[*] {bcolors.GREEN}1{bcolors.ENDC} Event returned over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(time_in_days))
 			print()
 			print(f"{bcolors.BOLD}Event Details{bcolors.ENDC}")
-			event_table = [['Event:', '{}'.format(event_eventName)]]
-			event_table += [['Region:', '{}'.format(event_awsRegion)]]
-			event_table += [['Source:', '{}'.format(event_eventSource)]]
-			event_table += [['Time:', '{}'.format(event_eventTime)]]
-			event_table += [['Type:', '{}'.format(event_eventType)]]
-			event_table += [['Username:', '{}'.format(event_userName)]]
-			event_table += [['Source IP:', '{}'.format(event_sourceIPAddress)]]
-			event_table += [['User Agent:', '{}'.format(event_userAgent)]]
-			event_table += [['Access Key ID:', '{}'.format(event_accessKeyId)]]
-			event_table += [['Account ID:', '{}'.format(event_accountId)]]
-			event_table += [['Recipient Account ID:', '{}'.format(event_recipientAccountId)]]
-			event_table += [['ARN:', '{}'.format(event_arn)]]
-			event_table += [['Principal ID:', '{}'.format(event_principalId)]]
-			event_table += [['Type:', '{}'.format(event_type)]]
-			event_table += [['Category:', '{}'.format(event_eventCategory)]]
-			event_table += [['Event ID:', '{}'.format(event_eventID)]]
-			event_table += [['Request ID:', '{}'.format(event_requestID)]]
+			if cloud_trail_activity:
+				event_table = [['Event:', '{}'.format(event_eventName)]]
+				event_table += [['Region:', '{}'.format(event_awsRegion)]]
+				event_table += [['Source:', '{}'.format(event_eventSource)]]
+				event_table += [['Time:', '{}'.format(event_eventTime)]]
+				event_table += [['Type:', '{}'.format(event_eventType)]]
+				event_table += [['Username:', '{}'.format(event_userName)]]
+				event_table += [['Source IP:', '{}'.format(event_sourceIPAddress)]]
+				event_table += [['User Agent:', '{}'.format(event_userAgent)]]
+				event_table += [['Access Key ID:', '{}'.format(event_accessKeyId)]]
+				event_table += [['Account ID:', '{}'.format(event_accountId)]]
+				event_table += [['Recipient Account ID:', '{}'.format(event_recipientAccountId)]]
+				event_table += [['ARN:', '{}'.format(event_arn)]]
+				event_table += [['Principal ID:', '{}'.format(event_principalId)]]
+				event_table += [['Type:', '{}'.format(event_type)]]
+				event_table += [['Category:', '{}'.format(event_eventCategory)]]
+				event_table += [['Event ID:', '{}'.format(event_eventID)]]
+				event_table += [['Request ID:', '{}'.format(event_requestID)]]
+			else:
+				event_table = []
+				for col in event_df:
+					event_value = event_df[col]
+					event_table += [[col, event_value.to_string(index=False)]]
 			print(tabulate(event_table))
 			print()
 			print(f"{bcolors.BOLD}Query:{bcolors.ENDC}")
 			print(exQuery)
 			print()
-			if filename:
-				print(f"{bcolors.BOLD}Event written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(filename))
+			if output_filename:
+				print(f"{bcolors.BOLD}Event written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(output_filename))
 				print()
 			else:
-				print("For additional details, export event details to a file:")
+				print("For additional information, export event details to a file:")
 				if query_contents:
-					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
+					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -r -o <output_file.csv>{bcolors.ENDC}".format(cmd_options))
 				else:
-					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <output_file.csv>{bcolors.ENDC}")
 				print()
 	elif event_count >= 2:
 		if count:
@@ -618,20 +770,23 @@ def hunt(exQuery):
 		else:
 			print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period:".format(event_count,time_in_days))
 			print()
-			print(tabulate(events_table, headers='firstrow'))
+			if cloud_trail_activity:
+				print(tabulate(events_table, headers='firstrow'))
+			else:
+				print(event_df)
 			print()
 			print(f"{bcolors.BOLD}{bcolors.CYAN}Query:{bcolors.ENDC}")
 			print(exQuery)
 			print()
-			if filename:
-				print(f"{bcolors.BOLD}{bcolors.GREEN}{{}}{bcolors.ENDC}{bcolors.BOLD} Events written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(event_count,filename))
+			if output_filename:
+				print(f"{bcolors.BOLD}{bcolors.GREEN}{{}}{bcolors.ENDC}{bcolors.BOLD} Events written to [{bcolors.CYAN}{{}}{bcolors.ENDC}{bcolors.BOLD}]{bcolors.ENDC}".format(event_count,output_filename))
 				print()
 			else:
-				print("For additional details, export event details to a file:")
+				print("For additional information, export event details to a file:")
 				if query_contents:
-					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -r -o <filename.csv>{bcolors.ENDC}".format(cmd_options))
+					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -r -o <output_file.csv>{bcolors.ENDC}".format(cmd_options))
 				else:
-					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <filename.csv>{bcolors.ENDC}")
+					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <output_file.csv>{bcolors.ENDC}")
 				print()
 
 def main():
@@ -678,6 +833,12 @@ def main():
 		query_contents['errors']='{}'.format(args.errors)
 	if args.status:
 		query_contents['status']='{}'.format(args.status)
+	if args.hostname:
+		query_contents['hostname']='{}'.format(args.hostname)
+	if args.filename:
+		query_contents['filename']='{}'.format(args.filename)
+	if args.cmdline:
+		query_contents['cmdline']='{}'.format(args.cmdline)
 
 	# Global timeframe
 	global time_in_days
@@ -694,11 +855,11 @@ def main():
 		count = ''
 
 	# Global File Writer
-	if args.filename:
-		global filename
-		filename = args.filename
+	if args.output_filename:
+		global output_filename
+		output_filename = args.output_filename
 	else:
-		filename = ''
+		output_filename = ''
 
 	# Dump Raw JSON
 	if args.JSON:
@@ -706,6 +867,10 @@ def main():
 		JSON = args.JSON
 	else:
 		JSON = ''
+
+	# Only query cloudtrail data if explicitly triggered
+	global cloud_trail_activity 
+	cloud_trail_activity = False
 
 	if args.exQuery:
 		# Authentication
