@@ -161,7 +161,7 @@ def download_file(search_term,vt_api_key):
 
 def print_multiple_results(outfile,hash_list,vt_api_key):
 	print('Printing data out to %s...' % outfile)
-	print('[count] - Hash | Filetype | MD5 | SHA1 | SHA256 | SSDeep | Packer | Reputation | Malicious | Suspicious | Undetected | Unsupported | Failure | Comments | Link')
+	print('[count] - Hash | Filetype | MD5 | SHA1 | SHA256 | SSDeep | Packer | Reputation | Malicious | Suspicious | Undetected | Unsupported | Failure | Comments')
 	with open(outfile,'a') as out:
 		csv_out=csv.writer(out)
 		csv_out.writerow(['Hash','Filetype','MD5','SHA1','SHA256','SSDeep','Packer','Reputation','Malicious','Suspicious','Undetected','Unsupported','Failure','Comments','Link'])
@@ -176,7 +176,7 @@ def print_multiple_results(outfile,hash_list,vt_api_key):
 			if error:
 				pass
 			else:
-				print(f'[{count}] - {i} | {filetype} | {packers} | {analysis_reputation} | {analysis_malicious} | {analysis_suspicious} | {analysis_undetected} | {analysis_unsupported} | {analysis_failure} | {vt_link}')
+				print(f'[{count}] - {i} | {filetype} | {packers} | {analysis_reputation} | {analysis_malicious} | {analysis_suspicious} | {analysis_undetected} | {analysis_unsupported} | {analysis_failure}')
 				if int(analysis_malicious) >= 1:
 					count += 1
 					# uncomment these two lines to only track malicious hits

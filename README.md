@@ -117,9 +117,18 @@ $ ./cloud-hunter.py -userAgent aws-cli/1.19.59\ Python/3.9.5\ Darwin/20.6.0\ bot
 # Note that LQL is case-sensitive
 ```
 
+### DNS
+```bash
+# Search for queries to a specific domain
+$ ./cloud-hunter.py -dns evil.site.com
+
+# Search for a relative domain, such as any DNS query containing .ru
+$ ./cloud-hunter.py -dns .ru
+```
+
 ### Hostname
 ```bash
-# Search ffor activities involving either a specific or relative hostname
+# Search for activities involving either a specific or relative hostname
 $ ./cloud-hunter.py -hostname pwnedhost1234
 ```
 
@@ -283,7 +292,7 @@ $ ./virustotal-hunt.sh
 #(             )
 # `--(_   _)--'
 #      Y-Y
-#     /@@ \   CloudHunter
+#     /@@ \   Cloud-Hunter
 #    /     \  >>---VT--->
 #    `--'.  \             ,
 #        |   `.__________/)
@@ -294,16 +303,22 @@ $ ./virustotal-hunt.sh
 # Hunt via Filename or File Extension (.py):
 #    $ ./virustotal-hunt -f "filename" -t "timeframe in days" -e "Lacework environment"
 #
-# Hunt via IP Address or Domain:
+# Hunt via IP Address:
 #    $ ./virustotal-hunt -i "ip address" -t "timeframe in days" -e "Lacework environment"
 #
-# Filename or IP Address are required
+# Hunt via Domain:
+#    $ ./virustotal-hunt -d "domain" -t "timeframe in days" -e "Lacework environment"
+#
+# Filename, Domain, or IP Address are required
 # Timeframe and Environment are optional
 #
 # ==================================================
 
 # Hunt for all files with a .py extension over a 180-day period:
 $ ./virustotal-hunt.sh -f .py -t 180
+
+# Hunt for suspicious DNS Requests over a single day:
+$ ./virustotal-hunt.sh -d .ru -t 1
 
 # Hunt for any activity where an IP address is present in the logs over a single day:
 $ ./virustotal-hunt.sh -i exists -t 1
@@ -330,6 +345,10 @@ greg.foss@lacework.net  --  Lacework Labs
 
 Tracking major changes to the codebase
 ```bash
+2/4/2022 - DNS Hunting
+- Added DNS LQL parameters
+- New VirusTotal DNS Hunting module
+
 2/3/2022 - Version 1.0 Released
 - Added Newly Available LQL Parameters:
     - hostname
@@ -341,5 +360,5 @@ Tracking major changes to the codebase
 9/1/2021 - Scale Hunting
 - Added scale-hunt.sh to search across multiple Lacework environments
 
-8/11/2021 - Initial Release
+8/11/2021 - Beta Version 0.1 Released
 ```
