@@ -2,7 +2,7 @@
 
 # Cloud Hunter
 # Lacework Labs
-# v1.0 - February 2022
+# v1.01 - February 2022
 # greg.foss@lacework.net
 
 '''
@@ -69,6 +69,7 @@ def parse_the_things():
 	parser.add_argument('-errorCode', help ='Include an error code in an LQL query', action	='store', dest = 'error')
 	parser.add_argument('-errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
 	parser.add_argument('-accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
+	parser.add_argument('-dns', help = 'Include DNS entries queried from the environment', action = 'store', dest = 'dns')
 	parser.add_argument('-hostname', help = 'Include activities tied to a hostname', action = 'store', dest = 'hostname')
 	parser.add_argument('-filename', help = 'Include activities tied to a filename', action = 'store', dest = 'filename')
 	parser.add_argument('-cmdline', help = 'Include command line items in LQL query', action = 'store', dest = 'cmdline')
@@ -388,6 +389,21 @@ def craft_query(**arguments):
 		# ============================== LW_HA_FILE_CHANGES ============================== #
 
 		# ============================== LW_HA_DNS_REQUESTS ============================== #
+
+		if variable == 'dns':
+			lw_data_sauce = 'LW_HA_DNS_REQUESTS'
+			var_count += 1
+			if value.lower() == 'exists':
+				event_dns = "HOSTNAME IS NOT NULL"
+				joined_options['-dns {}'.format(value)]='dns'
+			elif '!' in value:
+				joined_options['-dns \'{}\''.format(value)]='dns'
+				value = value.split("!")
+				event_dns = "HOSTNAME NOT LIKE '%{}%'".format(value[1])
+			else:
+				event_dns = "(CONTAINS(HOSTNAME, '{}'))".format(value)
+				joined_options['-dns {}'.format(value)]='dns'
+			joined_items[event_dns]='dns'
 
 		# ============================== LW_HA_USER_LOGINS ============================== #
 
@@ -839,6 +855,8 @@ def main():
 		query_contents['filename']='{}'.format(args.filename)
 	if args.cmdline:
 		query_contents['cmdline']='{}'.format(args.cmdline)
+	if args.dns:
+		query_contents['dns']='{}'.format(args.dns)
 
 	# Global timeframe
 	global time_in_days
