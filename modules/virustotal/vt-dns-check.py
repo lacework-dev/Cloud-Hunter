@@ -155,7 +155,10 @@ def print_single_result(search_term):
 		print('------------------------------------------------------------')
 		print('')
 		print('Domain Rank:')
-		print(tabulate(rank_df.drop('timestamp'), headers = 'keys'))
+		try:
+			print(tabulate(rank_df.drop('timestamp'), headers = 'keys'))
+		except:
+			print("N/A")
 		print('------------------------------------------------------------')
 		print('')
 		if comments != 'n/a':
