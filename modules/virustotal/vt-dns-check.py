@@ -33,7 +33,7 @@ def parse_all_things():
 	parser.add_argument('-v', '--vtkey', help = 'Virus Total API Key', default = '[PLACE API KEY HERE]', dest = 'vt_api_key')
 	return parser
 
-def check_ip(search_term,vt_api_key):
+def check_dns(search_term,vt_api_key):
 	
 	global malicious
 	global suspicious
@@ -107,10 +107,10 @@ def print_multiple_results(outfile,dns_list,vt_api_key):
 	vt_api_domains = VirusTotalAPIDomains(f'{vt_api_key}')
 
 	print('Printing data out to %s...' % outfile)
-	print('[count] - IP | Malicious | Suspicious | Undetected | Comment')
+	print('[count] - Domain | Malicious | Suspicious | Undetected | Comment')
 	with open(outfile,'a') as out:
 		csv_out=csv.writer(out)
-		csv_out.writerow(['IP','Malicious','Suspicious','Undetected','Comment','Details','Rank','Categorization','Link'])
+		csv_out.writerow(['Domain','Malicious','Suspicious','Undetected','Comment','Details','Rank','Categorization','Link'])
 		count = 0
 		for i in dns_list:
 			count += 1
@@ -118,7 +118,7 @@ def print_multiple_results(outfile,dns_list,vt_api_key):
 				quit()
 			else:
 				pass
-			check_ip(i,vt_api_key)
+			check_dns(i,vt_api_key)
 			if error:
 				pass
 			else:
@@ -183,7 +183,7 @@ def main():
 	args = parser.parse_args()
 	
 	if args.search_term:
-		check_ip(args.search_term,args.vt_api_key)
+		check_dns(args.search_term,args.vt_api_key)
 		print_single_result(args.search_term)
 	elif args.file:
 		with open(args.file) as f:
