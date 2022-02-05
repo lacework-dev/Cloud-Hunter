@@ -24,7 +24,7 @@ do
 		f) filename=${OPTARG};;
 		d) domain=${OPTARG};;
 		i) ipaddress=${OPTARG};;
-		t) time=${OPTARG};;
+		t) timestamp=${OPTARG};;
 		e) environment=${OPTARG};;
 	esac
 done
@@ -48,18 +48,19 @@ if [[ $1 == $null ]]; then
 	echo 
 else
 	echo
-	
+
 	# Filename Hunting
 	if [[ $filename != $null ]]; then
 		if [[ $filename == 'exists' ]]; then
 			echo "Checking all files - this may take a long time..."
 			echo "Results are limited to the most recent 5000 hits"
+			echo 
 		fi
-		if [[ $time != $null ]]; then
+		if [[ $timestamp != $null ]]; then
 			if [[ $environment != $null ]]; then
-				file_hits=$(../cloud-hunter.py -filename $filename -r -j -t $time -environment $environment)
+				file_hits=$(../cloud-hunter.py -filename $filename -r -j -t $timestamp -environment $environment)
 			else
-				file_hits=$(../cloud-hunter.py -filename $filename -r -j -t $time)
+				file_hits=$(../cloud-hunter.py -filename $filename -r -j -t $timestamp)
 			fi
 		else
 			if [[ $environment != $null ]]; then
@@ -91,12 +92,13 @@ else
 		if [[ $domain == 'exists' ]]; then
 			echo "Checking all DNS queries - this may take a long time..."
 			echo "Results are limited to the most recent 5000 hits"
+			echo 
 		fi
-		if [[ $time != $null ]]; then
+		if [[ $timestamp != $null ]]; then
 			if [[ $environment != $null ]]; then
-				dns_hits=$(../cloud-hunter.py -dns $domain -r -j -t $time -environment $environment)
+				dns_hits=$(../cloud-hunter.py -dns $domain -r -j -t $timestamp -environment $environment)
 			else
-				dns_hits=$(../cloud-hunter.py -dns $domain -r -j -t $time)
+				dns_hits=$(../cloud-hunter.py -dns $domain -r -j -t $timestamp)
 			fi
 		else
 			if [[ $environment != $null ]]; then
@@ -128,12 +130,13 @@ else
 		if [[ $ipaddress == 'exists' ]]; then
 			echo "Checking all IP's - this may take a long time..."
 			echo "Results are limited to the most recent 5000 hits"
+			echo 
 		fi
-		if [[ $time != $null ]]; then
+		if [[ $timestamp != $null ]]; then
 			if [[ $environment != $null ]]; then
-				ip_hits=$(../cloud-hunter.py -ip $ipaddress -r -j -t $time -environment $environment)
+				ip_hits=$(../cloud-hunter.py -ip $ipaddress -r -j -t $timestamp -environment $environment)
 			else
-				ip_hits=$(../cloud-hunter.py -ip $ipaddress -r -j -t $time)
+				ip_hits=$(../cloud-hunter.py -ip $ipaddress -r -j -t $timestamp)
 			fi
 		else
 			if [[ $environment != $null ]]; then
@@ -163,5 +166,5 @@ else
 fi
 unset filename
 unset ipaddress
-unset time
+unset timestamp
 unset environment

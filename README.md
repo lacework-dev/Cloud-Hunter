@@ -354,7 +354,7 @@ Tracking major changes to the codebase
     - hostname
     - filename
     - cmdline
-- New VirusTotal Integration - Check files, IPs, and Domains against VirusTotal
+- New VirusTotal Integration - Check files and IPs against VirusTotal
 - Various bug-fixes and code updates
 
 9/1/2021 - Scale Hunting
