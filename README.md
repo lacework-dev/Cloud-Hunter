@@ -21,15 +21,15 @@ Cloud-Hunter allows you to search for key data across the Lacework platform, wit
 
 Works alongside the Lacework CLI and the Lacework Labs project, LQL-Boss
 
-[Lacework CLI] https://github.com/lacework/go-sdk/wiki/CLI-Documentation
+* [Lacework CLI](https://github.com/lacework/go-sdk/wiki/CLI-Documentation)
 
-[LQL ATT&CK] https://github.com/lacework-dev/LQL-Attack
+* [LQL ATT&CK](https://github.com/lacework-dev/LQL-Attack)
 
-[LQL-Boss] https://github.com/lacework-dev/LQL-Boss
+* [LQL-Boss](https://github.com/lacework-dev/LQL-Boss)
 
-[Content]  https://github.com/lacework-dev/lacework-content
+* [Content](https://github.com/lacework-dev/lacework-content)
 
-[API Docs] https://(environment).lacework.net/api/v2/docs
+* [API Docs] https://<YOUR_SUBDOMAIN_HERE>.lacework.net/api/v2/docs
 
 # Installation
 
