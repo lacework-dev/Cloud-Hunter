@@ -282,9 +282,9 @@ $ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAg
 
 Modules extend the Cloud-Hunter platform and are located in the ./modules/ directory
 
-[Cloud-Hunter Modules](./modules/README.md)
+[Cloud-Hunter Modules](./modules/)
 
-### [VirusTotal Integration](./modules/README.md)
+### [VirusTotal Integration](./modules#virustotal-integration)
 ```bash
 (             )
  `--(_   _)--'
@@ -299,7 +299,7 @@ $ ./modules/virustotal-hunt.sh
 # Hunt for files, IP's, or Domains and check results against VirusTotal
 ```
 
-### [Hunting at Scale](./modules/README.md)
+### [Hunting at Scale](./modules#hunting-at-scale)
 ```bash
                 .   Cloud-Hunter   |      *
      *             *              -O-          .
