@@ -53,7 +53,7 @@ banner = f'''{bcolors.BOLD}{bcolors.CYAN}                _
 '''
 
 def parse_the_things():
-	parser = argparse.ArgumentParser(description = 'Dynamically generate and hunt with the Lacework Query Language (LQL) quickly and efficiently')
+	parser = argparse.ArgumentParser(description = 'Dynamically create queries and hunt with the Lacework Query Language (LQL) quickly and efficiently')
 	parser.add_argument('-environment', help = 'Lacework environment (will be set to "default" if not specified)', action = 'store', dest = 'lw_env')
 	parser.add_argument('-any', help = 'Include literally any keyword in an LQL query (Waring: may return thousands of results)', action = 'store', dest = 'anything')
 	parser.add_argument('-source', help = 'Include events by source in an LQL query', action = 'store', dest = 'evtSource')
@@ -70,8 +70,10 @@ def parse_the_things():
 	parser.add_argument('-errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
 	parser.add_argument('-accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
 	parser.add_argument('-dns', help = 'Include DNS entries queried from the environment', action = 'store', dest = 'dns')
+	parser.add_argument('-os', help = 'Include activities related to the operating system name', action = 'store', dest = 'operating_system')
 	parser.add_argument('-hostname', help = 'Include activities tied to a hostname', action = 'store', dest = 'hostname')
 	parser.add_argument('-filename', help = 'Include activities tied to a filename', action = 'store', dest = 'filename')
+	parser.add_argument('-filetype', help = 'Include activities tied to a type of file', action = 'store', dest = 'filetype')
 	parser.add_argument('-cmdline', help = 'Include command line items in LQL query', action = 'store', dest = 'cmdline')
 	parser.add_argument('-hunt', help = 'Hunt by executing a raw LQL query', action = 'store', dest = 'exQuery')
 	parser.add_argument('-t', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
@@ -369,6 +371,21 @@ def craft_query(**arguments):
 				joined_options['-hostname {}'.format(value)]='hostname'
 			joined_items[event_hostname]='hostname'
 
+		if variable == 'operating_system':
+			lw_data_sauce = 'LW_HE_MACHINES'
+			var_count += 1
+			if value.lower() == 'exists':
+				event_operating_system = "OS IS NOT NULL"
+				joined_options['-os {}'.format(value)]='operating_system'
+			elif '!' in value:
+				joined_options['-os \'{}\''.format(value)]='operating_system'
+				value = value.split("!")
+				event_operating_system = "OS NOT LIKE '%{}%'".format(value[1])
+			else:
+				event_operating_system = "(CONTAINS(OS, '{}'))".format(value)
+				joined_options['-os {}'.format(value)]='operating_system'
+			joined_items[event_operating_system]='operating_system'
+
 		# ============================== LW_HE_FILES ============================== #
 
 		if variable == 'filename':
@@ -385,6 +402,21 @@ def craft_query(**arguments):
 				event_filename = "(CONTAINS(FILE_NAME, '{}'))".format(value)
 				joined_options['-filename {}'.format(value)]='filename'
 			joined_items[event_filename]='filename'
+
+		if variable == 'filetype':
+			lw_data_sauce = 'LW_HE_FILES'
+			var_count += 1
+			if value.lower() == 'exists':
+				event_filetype = "FILE_TYPE IS NOT NULL"
+				joined_options['-filetype {}'.format(value)]='filetype'
+			elif '!' in value:
+				joined_options['-filetype \'{}\''.format(value)]='filetype'
+				value = value.split("!")
+				event_filetype = "FILE_TYPE NOT LIKE '%{}%'".format(value[1])
+			else:
+				event_filetype = "(CONTAINS(FILE_TYPE, '{}'))".format(value)
+				joined_options['-filetype {}'.format(value)]='filetype'
+			joined_items[event_filetype]='filetype'
 
 		# ============================== LW_HA_FILE_CHANGES ============================== #
 
@@ -426,7 +458,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_cmdline = "CMDLINE NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_cmdline = "CMDLINE LIKE '%{}%'".format(value)
+				event_cmdline = "(CONTAINS(CMDLINE, '{}'))".format(value)
 				joined_options['-cmdline {}'.format(value)]='cmdline'
 			joined_items[event_cmdline]='cmdline'
 
@@ -851,8 +883,12 @@ def main():
 		query_contents['status']='{}'.format(args.status)
 	if args.hostname:
 		query_contents['hostname']='{}'.format(args.hostname)
+	if args.operating_system:
+		query_contents['operating_system']='{}'.format(args.operating_system)
 	if args.filename:
 		query_contents['filename']='{}'.format(args.filename)
+	if args.filetype:
+		query_contents['filetype']='{}'.format(args.filetype)
 	if args.cmdline:
 		query_contents['cmdline']='{}'.format(args.cmdline)
 	if args.dns:

@@ -1,0 +1,9 @@
+/*
+	Edit this file with your configuration options and save as config.json
+	Your config file will not be affected by future updates
+*/
+{
+	"primary_lacework_tenant_name": "default",
+	"cloud_hunter_script_location": "/full/path/to/cloud-hunter.py",
+	"virustotal_api_key": "KEY"
+}

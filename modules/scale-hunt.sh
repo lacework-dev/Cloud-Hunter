@@ -2,24 +2,36 @@
 
 # Large Scale Cloud Hunter
 # Lacework Labs
-# v0.1 - September 2021
+# v0.2 - February 2022
 # greg.foss@lacework.net
 #
 # Use alongside cloud-hunter.py to run queries across multiple environments
+#
+# EDIT THE CONFIGURATION FILE TO UPDATE SCRIPT OPTIONS
+# ==============================
+configuration_file="./config.json"
+# ==============================
 
-# EDIT THESE VARIABLES
-# ==============================
-# How you'd like to display the default environment within output
-primary_env='default'
-# Cloud Hunter script location
-cloud_hunter='../cloud-hunter.py'
-# ==============================
+primary_env=$(cat $configuration_file | jq ."primary_lacework_tenant_name" | tr -d '"')
+cloud_hunter=$(cat $configuration_file | jq ."cloud_hunter_script_location" | tr -d '"')
 
 CYAN='\033[0;36m'
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
+
+banner="""
+                .   Cloud-Hunter   |      *
+     *             *              -O-          .
+           .             *         |     ,
+          .---.
+    =   _/__~0_\_     .  *  Scale-Hunt   o    '
+   = = (_________)             .
+                   .                        *
+         *               - ) -       *
+                . Lacework Labs .
+"""
 
 count_loop () {
 	env=$(echo $i | cut -d "[" -f 2 | cut -d "]" -f 1);
@@ -65,22 +77,28 @@ detailed_loop () {
 	echo
 }
 
-echo
 if [[ $# -eq 0 ]]
 then
-    echo -e "[!] ${RED}ERROR: No arguments provided${NC}"
-    echo -e "Scale-Hunt.sh takes the same arguments as Cloud-Hunter.py. See the script help for reference:"
-    echo -e "${CYAN}./cloud-hunter.py${NC}"
+    echo -e "${BLUE}$banner${NC}"
+    echo -e "====================[ ${GREEN}HELP${NC} ]===================="
+    echo -e "${CYAN}scale-hunt.sh${NC} takes the same arguments as ${CYAN}cloud-hunter.py${NC}"
+    echo
+    echo -e "${CYAN}Run the script without options to view available options:${NC}"
+    echo "$ $cloud_hunter"
+    echo "=================================================="
     echo
     exit 1
 fi
 if [[ "$*" == *-c* ]]
 then
+	echo
 	printf "${CYAN}Environment${NC}	|	${CYAN}Hits${NC}\n"
 	echo -e "${BLUE}==============================${NC}"
 	for i in $(grep "\[" ~/.lacework.toml); do count_loop "$@" &  done
 	wait
 else
+	echo
 	for i in $(grep "\[" ~/.lacework.toml); do detailed_loop "$@" & done
 	wait
 fi
+echo

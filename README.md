@@ -19,7 +19,7 @@
 
 Cloud-Hunter allows you to search for key data across the Lacework platform, with the advantage of crafting LQL queries for every search bring executed. This not only helps to find data quickly and easily, (even including content that isn't displayed in the console) but develop queries for ongoing monitoring as you scale the queries along with your organization's cloud security program.
 
-Works alongside the Lacework CLI and the Lacework Labs project, LQL-Boss
+Works alongside the Lacework CLI and related Lacework Labs projects, LQL-Boss and LQL-Att&ck
 
 * [Lacework CLI](https://github.com/lacework/go-sdk/wiki/CLI-Documentation)
 
@@ -27,7 +27,7 @@ Works alongside the Lacework CLI and the Lacework Labs project, LQL-Boss
 
 * [LQL-Boss](https://github.com/lacework-dev/LQL-Boss)
 
-* [Content](https://github.com/lacework-dev/lacework-content)
+* [Rules and LQL Content](https://github.com/lacework-dev/lacework-content)
 
 * [API Docs] https://<YOUR_SUBDOMAIN_HERE>.lacework.net/api/v2/docs
 
@@ -280,58 +280,39 @@ $ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAg
 
 # Modules
 
-### VirusTotal Integration
+Modules extend the Cloud-Hunter platform and are located in the ./modules/ directory
+
+[Cloud-Hunter Modules](./modules/README.md)
+
+### [VirusTotal Integration](./modules/README.md)
 ```bash
-# Leverage the ./modules/virustotal-hunt.sh bash script to hunt for files, IP's, or Domains and check results against VirusTotal
+(             )
+ `--(_   _)--'
+      Y-Y
+     /@@ \\   Cloud-Hunter
+    /     \\  >>---VT--->
+    \`--'.  \\             ,
+        |   `.__________/)
+           Lacework Labs
 
-# Add your VirusTotal API key to the two virustotal scripts located in the ./modules/virustotal/ directory
-# Replace the string [PLACE API KEY HERE] with your API key
-
-# Running the script without options will display the help menu
-$ ./virustotal-hunt.sh
-#(             )
-# `--(_   _)--'
-#      Y-Y
-#     /@@ \   Cloud-Hunter
-#    /     \  >>---VT--->
-#    `--'.  \             ,
-#        |   `.__________/)
-#           Lacework Labs
-#
-# ====================[ HELP ]====================
-#
-# Hunt via Filename or File Extension (.py):
-#    $ ./virustotal-hunt -f "filename" -t "timeframe in days" -e "Lacework environment"
-#
-# Hunt via IP Address:
-#    $ ./virustotal-hunt -i "ip address" -t "timeframe in days" -e "Lacework environment"
-#
-# Hunt via Domain:
-#    $ ./virustotal-hunt -d "domain" -t "timeframe in days" -e "Lacework environment"
-#
-# Filename, Domain, or IP Address are required
-# Timeframe and Environment are optional
-#
-# ==================================================
-
-# Hunt for all files with a .py extension over a 180-day period:
-$ ./virustotal-hunt.sh -f .py -t 180
-
-# Hunt for suspicious DNS Requests over a single day:
-$ ./virustotal-hunt.sh -d .ru -t 1
-
-# Hunt for any activity where an IP address is present in the logs over a single day:
-$ ./virustotal-hunt.sh -i exists -t 1
+$ ./modules/virustotal-hunt.sh
+# Hunt for files, IP's, or Domains and check results against VirusTotal
 ```
 
-### Hunting at Scale
+### [Hunting at Scale](./modules/README.md)
 ```bash
-# Leverage the ./modules/scale-hunt.sh bash script to hunt across multiple organizations
+                .   Cloud-Hunter   |      *
+     *             *              -O-          .
+           .             *         |     ,
+          .---.
+    =   _/__~0_\_     .  *  Scale-Hunt   o    ,
+   = = (_________)             .
+                   .                        *
+         *               - ) -       *
+                . Lacework Labs .
 
-# Hunt for activities and count the results:
-./scale-hunt.sh -source backup -event ListBackupVaults -accessDenied y -t 10 -r -c
-
-# This leverages all environments listed within your ~/.lacework.toml file to execute queries
+$ ./modules/scale-hunt.sh
+# Hunt across multiple Lacework Tenants at once
 ```
 
 # Author
@@ -340,25 +321,29 @@ Please feel free to reach out to Lacework Labs with ideas for improvement, queri
 ```bash
 greg.foss@lacework.net  --  Lacework Labs
 ```
+Contribute to the framework by opening a pull request
 
 # Changelog
 
 Tracking major changes to the codebase
 ```bash
+2/7/2022 - JSON Configuration
+- Updated modules to use a configuration file
+- New LQL Parameters:
+    - OS, Filetype
+
 2/4/2022 - DNS Hunting
 - Added DNS LQL parameters
 - New VirusTotal DNS Hunting module
 
-2/3/2022 - Version 1.0 Released
-- Added Newly Available LQL Parameters:
-    - hostname
-    - filename
-    - cmdline
+2/3/2022 - Version 1.0 - Internal Release
+- Added New LQL Parameters:
+    - CMDline, Hostname, Filename
 - New VirusTotal Integration - Check files and IPs against VirusTotal
 - Various bug-fixes and code updates
 
 9/1/2021 - Scale Hunting
 - Added scale-hunt.sh to search across multiple Lacework environments
 
-8/11/2021 - Beta Version 0.1 Released
+8/11/2021 - Beta Version 0.1 - Internal Release
 ```
