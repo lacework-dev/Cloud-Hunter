@@ -15,7 +15,7 @@
     /_,//_//_//_/  / //_// //_'/ /_'/
                         Lacework Labs
 ```
-### Dynamically generate and hunt with the Lacework Query Language (LQL)
+### Dynamically create queries and hunt with the Lacework Query Language (LQL)
 
 Cloud-Hunter allows you to search for key data across the Lacework platform, with the advantage of crafting LQL queries for every search bring executed. This not only helps to find data quickly and easily, (even including content that isn't displayed in the console) but develop queries for ongoing monitoring as you scale the queries along with your organization's cloud security program.
 
