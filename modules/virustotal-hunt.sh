@@ -219,7 +219,9 @@ else
 		rm ips.tmp
 	fi
 fi
+unset filetype
 unset filename
+unset domain
 unset ipaddress
 unset timestamp
 unset environment
