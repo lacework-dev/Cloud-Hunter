@@ -241,9 +241,9 @@ def craft_query(**arguments):
 			elif '!' in value:
 				joined_options['-username \'{}\''.format(value)]='event_username'
 				value = value.split("!")
-				event_username = "EVENT:userIdentity.userName NOT LIKE '%{}%'".format(value[1])
+				event_username = "EVENT:userIdentity.userName NOT LIKE '%{}%' OR EVENT:userIdentity.arn NOT LIKE '%{}%' OR EVENT:responseElements.assumedRoleUser.arn NOT LIKE '%{}%'".format(value[1],value[1],value[1])
 			else:
-				event_username = "EVENT:userIdentity.userName LIKE '%{}%'".format(value)
+				event_username = "EVENT:userIdentity.userName LIKE '%{}%' OR EVENT:userIdentity.arn LIKE '%{}%' OR EVENT:responseElements.assumedRoleUser.arn LIKE '%{}%'".format(value,value,value)
 				joined_options['-username {}'.format(value)]='event_username'
 			joined_items[event_username]='event_username'
 		
