@@ -77,7 +77,10 @@ def check_hash(search_term,vt_api_key):
 			md5 = result['data']['attributes']['md5']
 			sha1 = result['data']['attributes']['sha1']
 			sha256 = result['data']['attributes']['sha256']
-			ssdeep = result['data']['attributes']['ssdeep']
+			try:
+				ssdeep = result['data']['attributes']['ssdeep']
+			except:
+				ssdeep = 'n/a'
 			last_modified = result['data']['attributes']['last_modification_date']
 			analysis_harmless = result['data']['attributes']['last_analysis_stats']['harmless']
 			analysis_unsupported = result['data']['attributes']['last_analysis_stats']['type-unsupported']

@@ -532,13 +532,16 @@ def validate_query(queryValidation):
 	try:
 	    response = requests.request("POST", validation_url, headers=headers, data=payload)
 	except requests.exceptions.RequestException as e:
-	    print(f"[!] {bcolors.RED}{bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC}[!]")
+	    print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
 	    print("{}".format(e))
 	print()
 	if "data" in response.text:
 		pass
 	else:
-		print(f"[!] {bcolors.RED}{bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC} [!]")
+		print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
+		print()
+		print(f"[POST] {response.url}")
+		print(f"[{response.status_code} - {response.reason}]")
 		print()
 		print(response.text)
 		print()
@@ -597,12 +600,21 @@ def hunt(exQuery):
 		'Authorization': authorization_token,
 		'Content-Type': 'application/json'
 	}
-	try:
-		response = requests.request("POST", execute_custom_url, headers=headers, data=payload)
-	except requests.exceptions.RequestException as e:
-		print(e)
+	response = requests.request("POST", execute_custom_url, headers=headers, data=payload)
 	json_data = json.loads(response.text)
-	event_df = pd.DataFrame.from_dict(json_data['data'], orient='columns')
+	
+	try:
+		event_df = pd.DataFrame.from_dict(json_data['data'], orient='columns')
+	except:
+		print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}ERROR{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
+		print()
+		print(f"[POST] {response.url}")
+		print(f"[{response.status_code} - {response.reason}]")
+		print()
+		print(response.text)
+		print()
+		quit()
+	
 	try:
 		if cloud_trail_activity:
 			event_count = len(json_data['data'])
@@ -612,6 +624,9 @@ def hunt(exQuery):
 	except:
 		print()
 		print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}ERROR{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
+		print(f"[POST] {response.url}")
+		print(f"[{response.status_code} - {response.reason}]")
+		print()
 		print(response.text)
 		print()
 		quit()
