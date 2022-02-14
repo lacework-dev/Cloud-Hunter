@@ -14,7 +14,7 @@ configuration_file="./config.json"
 
 cloud_hunter=$(cat $configuration_file | jq ."cloud_hunter_script_location" | tr -d '"')
 vt_api_key=$(cat $configuration_file | jq ."virustotal_api_key" | tr -d '"')
-vt_folder=$(echo $configuration_file | sed 's/config.json//g')
+vt_folder=$(echo $configuration_file | sed 's/\/config.json//g')
 
 CYAN='\033[0;36m'
 BLUE='\033[0;34m'
@@ -44,6 +44,15 @@ do
 		e) environment=${OPTARG};;
 	esac
 done
+sp="/-\|"
+sc=0
+spin() {
+   printf "\b${sp:sc++:1}"
+   ((sc==${#sp})) && sc=0
+}
+endspin() {
+   printf "\r%s\n" "$@"
+}
 if [[ $1 == $null ]]; then
 	echo -e "${BLUE}$banner${NC}"
 	echo -e "=========================[ ${GREEN}HELP${NC} ]========================="
@@ -75,22 +84,24 @@ else
 		fi
 		if [[ $timestamp != $null ]]; then
 			if [[ $environment != $null ]]; then
-				filetype_hits=$($cloud_hunter -filetype $filetype -r -j -t $timestamp -environment $environment)
+				filetype_hits=$($cloud_hunter -filetype $filetype -j -t $timestamp -environment $environment)
 			else
-				filetype_hits=$($cloud_hunter -filetype $filetype -r -j -t $timestamp)
+				filetype_hits=$($cloud_hunter -filetype $filetype -j -t $timestamp)
 			fi
 		else
 			if [[ $environment != $null ]]; then
-				filetype_hits=$($cloud_hunter -filetype $filetype -r -j -environment $environment)
+				filetype_hits=$($cloud_hunter -filetype $filetype -j -environment $environment)
 			else
-				filetype_hits=$($cloud_hunter -filetype $filetype -r -j)
+				filetype_hits=$($cloud_hunter -filetype $filetype -j)
 			fi
 		fi
 		filetype_count=$(echo $filetype_hits | jq '. | length')
 		echo -e "${CYAN}$filetype_count${NC} - Total files found"
 		for i in $(seq 0 $filetype_count); do
+			spin
 			echo $filetype_hits | jq .\[$i\].FILEDATA_HASH >> tmp.tmp
 		done
+		endspin
 		cat tmp.tmp | grep -v 'null\|^$' | sort -u | tr -d '"' > hashes.tmp
 		rm tmp.tmp
 		sed -i "" '/^[[:space:]]*$/d' hashes.tmp
@@ -98,9 +109,9 @@ else
 		echo -e "${CYAN}$unique_filetype_count${NC} - Unique files that will be analyzed"
 		echo ""
 		if [[ $environment != $null ]]; then
-			$vt_folder/virustotal/vt-hash-check.py -f hashes.tmp -o $environment-hashes.csv -v $vt_api_key
+			$vt_folder/scripts/virustotal-hash.py -f hashes.tmp -o $environment-hashes.csv -v $vt_api_key
 		else
-			$vt_folder/virustotal/vt-hash-check.py -f hashes.tmp -v $vt_api_key
+			$vt_folder/scripts/virustotal-hash.py -f hashes.tmp -v $vt_api_key
 		fi
 		rm hashes.tmp
 
@@ -113,22 +124,24 @@ else
 		fi
 		if [[ $timestamp != $null ]]; then
 			if [[ $environment != $null ]]; then
-				file_hits=$($cloud_hunter -filename $filename -r -j -t $timestamp -environment $environment)
+				file_hits=$($cloud_hunter -filename $filename -j -t $timestamp -environment $environment)
 			else
-				file_hits=$($cloud_hunter -filename $filename -r -j -t $timestamp)
+				file_hits=$($cloud_hunter -filename $filename -j -t $timestamp)
 			fi
 		else
 			if [[ $environment != $null ]]; then
-				file_hits=$($cloud_hunter -filename $filename -r -j -environment $environment)
+				file_hits=$($cloud_hunter -filename $filename -j -environment $environment)
 			else
-				file_hits=$($cloud_hunter -filename $filename -r -j)
+				file_hits=$($cloud_hunter -filename $filename -j)
 			fi
 		fi
 		file_count=$(echo $file_hits | jq '. | length')
 		echo -e "${CYAN}$file_count${NC} - Total files found"
 		for i in $(seq 0 $file_count); do
+			spin
 			echo $file_hits | jq .\[$i\].FILEDATA_HASH >> tmp.tmp
 		done
+		endspin
 		cat tmp.tmp | grep -v 'null\|^$' | sort -u | tr -d '"' > hashes.tmp
 		rm tmp.tmp
 		sed -i "" '/^[[:space:]]*$/d' hashes.tmp
@@ -136,9 +149,9 @@ else
 		echo -e "${CYAN}$unique_file_count${NC} - Unique files that will be analyzed"
 		echo ""
 		if [[ $environment != $null ]]; then
-			$vt_folder/virustotal/vt-hash-check.py -f hashes.tmp -o $environment-hashes.csv -v $vt_api_key
+			$vt_folder/scripts/virustotal-hash.py -f hashes.tmp -o $environment-hashes.csv -v $vt_api_key
 		else
-			$vt_folder/virustotal/vt-hash-check.py -f hashes.tmp -v $vt_api_key
+			$vt_folder/scripts/virustotal-hash.py -f hashes.tmp -v $vt_api_key
 		fi
 		rm hashes.tmp
 	
@@ -151,22 +164,24 @@ else
 		fi
 		if [[ $timestamp != $null ]]; then
 			if [[ $environment != $null ]]; then
-				dns_hits=$($cloud_hunter -dns $domain -r -j -t $timestamp -environment $environment)
+				dns_hits=$($cloud_hunter -dns $domain -j -t $timestamp -environment $environment)
 			else
-				dns_hits=$($cloud_hunter -dns $domain -r -j -t $timestamp)
+				dns_hits=$($cloud_hunter -dns $domain -j -t $timestamp)
 			fi
 		else
 			if [[ $environment != $null ]]; then
-				dns_hits=$($cloud_hunter -dns $domain -r -j -environment $environment)
+				dns_hits=$($cloud_hunter -dns $domain -j -environment $environment)
 			else
-				dns_hits=$($cloud_hunter -dns $domain -r -j)
+				dns_hits=$($cloud_hunter -dns $domain -j)
 			fi
 		fi
 		dns_count=$(echo $dns_hits | jq '. | length')
 		echo -e "${CYAN}$dns_count${NC} - Total Domains found"
 		for i in $(seq 0 $dns_count); do
+			spin
 			echo $dns_hits | jq .\[$i\].HOSTNAME >> tmp.tmp
 		done
+		endspin
 		cat tmp.tmp | grep -v 'null\|^$' | sort -u | tr -d '"' > dns.tmp
 		rm tmp.tmp
 		sed -i "" '/^[[:space:]]*$/d' dns.tmp
@@ -174,9 +189,9 @@ else
 		echo -e "${CYAN}$unique_dns_count${NC} - Unique Domains that will be analyzed"
 		echo ""
 		if [[ $environment != $null ]]; then
-			$vt_folder/virustotal/vt-dns-check.py -f dns.tmp -o $environment-dns.csv -v $vt_api_key
+			$vt_folder/scripts/virustotal-dns.py -f dns.tmp -o $environment-dns.csv -v $vt_api_key
 		else
-			$vt_folder/virustotal/vt-dns-check.py -f dns.tmp -v $vt_api_key
+			$vt_folder/scripts/virustotal-dns.py -f dns.tmp -v $vt_api_key
 		fi
 		rm dns.tmp
 
@@ -189,22 +204,24 @@ else
 		fi
 		if [[ $timestamp != $null ]]; then
 			if [[ $environment != $null ]]; then
-				ip_hits=$($cloud_hunter -ip $ipaddress -r -j -t $timestamp -environment $environment)
+				ip_hits=$($cloud_hunter -ip $ipaddress -j -t $timestamp -environment $environment)
 			else
-				ip_hits=$($cloud_hunter -ip $ipaddress -r -j -t $timestamp)
+				ip_hits=$($cloud_hunter -ip $ipaddress -j -t $timestamp)
 			fi
 		else
 			if [[ $environment != $null ]]; then
-				ip_hits=$($cloud_hunter -ip $ipaddress -r -j -environment $environment)
+				ip_hits=$($cloud_hunter -ip $ipaddress -j -environment $environment)
 			else
-				ip_hits=$($cloud_hunter -ip $ipaddress -r -j)
+				ip_hits=$($cloud_hunter -ip $ipaddress -j)
 			fi
 		fi
 		ip_count=$(echo $ip_hits | jq '. | length')
 		echo -e "${CYAN}$ip_count${NC} - Total IP's found"
 		for i in $(seq 0 $ip_count); do
+			spin
 			echo $ip_hits | jq .\[$i\].EVENT.sourceIPAddress >> tmp.tmp
 		done
+		endspin
 		cat tmp.tmp | grep -v 'null\|^$' | sort -u | tr -d '"' > ips.tmp
 		rm tmp.tmp
 		sed -i "" '/^[[:space:]]*$/d' ips.tmp
@@ -212,9 +229,9 @@ else
 		echo -e "${CYAN}$unique_ip_count${NC} - Unique IP's that will be analyzed"
 		echo ""
 		if [[ $environment != $null ]]; then
-			$vt_folder/virustotal/vt-ip-check.py -f ips.tmp -o $environment-ips.csv -v $vt_api_key
+			$vt_folder/scripts/virustotal-ip.py -f ips.tmp -o $environment-ips.csv -v $vt_api_key
 		else
-			$vt_folder/virustotal/vt-ip-check.py -f ips.tmp -v $vt_api_key
+			$vt_folder/scripts/virustotal-ip.py -f ips.tmp -v $vt_api_key
 		fi
 		rm ips.tmp
 	fi

@@ -31,7 +31,7 @@ def parse_all_things():
 	parser.add_argument('-d', '--download', help = 'Download a file', dest = 'download_link')
 	parser.add_argument('-q', '--quota', help = 'Inspect your current VirusTotal usage - supply your username', dest = 'username')
 	parser.add_argument('-o', '--outfile', help = 'Output the results of multi-hash analysis, default value -> vt-hash.csv', default = 'vt-hash.csv', dest = 'outfile')
-	parser.add_argument('-v', '--vtkey', help = 'Virus Total API Key', default = '[PLACE API KEY HERE]', dest = 'vt_api_key')
+	parser.add_argument('-v', '--vtkey', help = 'Virus Total API Key', default = 'api-key', dest = 'vt_api_key')
 	return parser
 
 def check_hash(search_term,vt_api_key):

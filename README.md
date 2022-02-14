@@ -64,7 +64,7 @@ Leverage the included command line operators to develop queries for the Lacework
 
 ### Query Source
 ```bash
-# Develop query for events matching an AWS event source
+# Hunt for events matching an AWS event source
 $ ./cloud-hunter.py -source <AWS Event Source>
 
 # Example Event Sources:
@@ -193,27 +193,38 @@ $ ./cloud-hunter.py -source backup -events "'ListBackupVaults', 'ListProtectedRe
 $ ./cloud-hunter.py -username '!greg' -accessDenied y
 
 # Check if a certain parameter exists
-cloud-hunter -username exists -errorCode Client.DryRunOperation
+$ /cloud-hunter.py -username exists -errorCode Client.DryRunOperation
+
+# To view the generated LQL query, append -j to the command. The will be idisplayed but will not execute
+$ /cloud-hunter.py -username exists -errorCode Client.DryRunOperation -j
 ```
 
 # Hunting
 
-For any search term, append -r to execute the query and view results from the past 7-days of activity.
+For any search term, append to execute the query and view results from the past 7-days of activity.
 
 ### Hunting by keywords
 ```bash
-# For any query mentioned above, append -r to the command to execute the query and search
-
 # Default timeframe is 7-days, this can be modified with the -t parameter
 # Example search over 1-day:
-$ ./cloud-hunter.py -username bob -t 1 -r
+$ ./cloud-hunter.py -username bob -t 1
 
 # Multiple parameters example:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y
 
 # Count the hits and do not display results to the screen
-$ ./cloud-hunter.py -username bob -r -c
+$ ./cloud-hunter.py -username bob -c
 ```
+
+### File-Based Rule Hunting
+
+```bash
+# Hunting with a LQL rule that is stored in a file:
+$ ./cloud-hunter.py -y /path/to/file.yaml
+
+# YAML format-files are preferred
+# Raw LQL query text-files will work as well
+````
 
 ### Raw Query Hunting
 ```bash
@@ -244,10 +255,7 @@ $ ./cloud-hunter.py -hunt """LaceworkLabs_CloudHunter {
   }
 }"""
 
-# Hunting with a LQL rule that is stored in a file:
-$ ./cloud-hunter.py -hunt """$(cat /path/to/file.lql)"""
-
-# Raw hunting can be combined with anytime, output, and counting options as well...
+# Raw hunting can be combined with any time, output, and counting options as well...
 
 # Example hunting over a 30-day period (default is 7-days):
 $ ./cloud-hunter.py -hunt "query" -t 30
@@ -265,16 +273,16 @@ $ ./cloud-hunter.py -hunt "query" -o filename.csv
 ### Exporting Data
 ```bash
 # View the raw query data in JSON:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -j
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -j
 
 # View the raw query data in JSON and export to a file:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -j -o filename.json
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -j -o filename.json
 
 # Export the full query output to CSV:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -o filename.csv
 
 # Do not display output to screen but save the data to a CSV file.
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -r -o filename.csv -c
+$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -o filename.csv -c
 # Note - the count argument only works with CSV output.
 ```
 
@@ -284,20 +292,6 @@ Modules extend the Cloud-Hunter platform and are located in the ./modules/ direc
 
 [Cloud-Hunter Modules](./modules/)
 
-### [VirusTotal Integration](./modules#virustotal-integration)
-```bash
-(             )
- `--(_   _)--'
-      Y-Y
-     /@@ \\   Cloud-Hunter
-    /     \\  >>---VT--->
-    \`--'.  \\             ,
-        |   `.__________/)
-           Lacework Labs
-
-$ ./modules/virustotal-hunt.sh
-# Hunt for files, IP's, or Domains and check results against VirusTotal
-```
 
 ### [Hunting at Scale](./modules#hunting-at-scale)
 ```bash
@@ -315,6 +309,39 @@ $ ./modules/scale-hunt.sh
 # Hunt across multiple Lacework Tenants at once
 ```
 
+### [VirusTotal Integration](./modules#virustotal-integration)
+```bash
+(             )
+ `--(_   _)--'
+      Y-Y
+     /@@ \\   Cloud-Hunter
+    /     \\  >>---VT--->
+    \`--'.  \\             ,
+        |   `.__________/)
+           Lacework Labs
+
+$ ./modules/virustotal-hunt.sh
+# Hunt for files, IP's, or Domains and check results against VirusTotal
+```
+
+### [Greynoise Integration](./modules#greynoise-integration)
+```bash
+
+   /^^^^   
+ /^    /^^ 
+/^^            Greynoise
+/^^            IP-Hunter
+/^^   /^^^^
+ /^^    /^ 
+  /^^^^^   
+          Lacework Labs
+
+$ ./modules/greynoise-hunt.sh
+# Hunt for IP's and check results against Greynoise
+```
+
+Module core-scripts are stored within the ./modules/scripts/ directory
+
 # Author
 
 Please feel free to reach out to Lacework Labs with ideas for improvement, queries, policies, issues, etc. 
@@ -327,6 +354,11 @@ Contribute to the framework by opening a pull request
 
 Tracking major changes to the codebase
 ```bash
+2/14/2022 - New Module
+- Added a new Greynoise IP inspection module
+- Made query display optional and cleaned up output
+- Added YAML file support
+
 2/7/2022 - JSON Configuration
 - Updated modules to use a configuration file
 - New LQL Parameters:

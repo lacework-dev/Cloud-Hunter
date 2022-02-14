@@ -35,12 +35,7 @@ banner="""
 
 count_loop () {
 	env=$(echo $i | cut -d "[" -f 2 | cut -d "]" -f 1);
-	if [[ "$*" != *-r* ]]
-	then
-		output=$($cloud_hunter $@ -r -environment $env);
-	else
-		output=$($cloud_hunter $@ -environment $env);
-	fi
+	output=$($cloud_hunter $@ -environment $env);
 	if [[ "$env" == *default* ]]
 	then
 		env=$primary_env
@@ -61,12 +56,7 @@ count_loop () {
 
 detailed_loop () {
 	env=$(echo $i | cut -d "[" -f 2 | cut -d "]" -f 1);
-	if [[ "$*" != *-r* ]]
-	then
-		output=$($cloud_hunter $@ -r -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv")
-	else
-		output=$($cloud_hunter $@ -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv")
-	fi
+	output=$($cloud_hunter $@ -environment $env | grep -v "Query:\|LaceworkLabs_AWS_CloudHunter\|additional details\|filename.csv")
 	if [[ "$env" == *default* ]]
 	then
 		env=$primary_env
