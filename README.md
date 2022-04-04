@@ -21,7 +21,7 @@ Cloud-Hunter allows you to search for key data across the Lacework platform, wit
 
 Works alongside the Lacework CLI and related Lacework Labs projects, LQL-Boss and LQL-Att&ck
 
-* [Lacework CLI](https://github.com/lacework/go-sdk/wiki/CLI-Documentation)
+* [Lacework CLI](https://docs.lacework.com/cli)
 
 * [LQL ATT&CK](https://github.com/lacework-dev/LQL-Attack)
 
@@ -33,9 +33,9 @@ Works alongside the Lacework CLI and related Lacework Labs projects, LQL-Boss an
 
 # Installation
 
-Install and configure the Lacework GO-SDK (CLI) before proceeding:
+Install and configure the Lacework CLI before proceeding:
 ```bash
-# Download and install the Lacework GO-SDK
+# Download and install the Lacework CLI
 $ curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
 
 # Configure to work with your organization
@@ -286,12 +286,9 @@ $ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAg
 # Note - the count argument only works with CSV output.
 ```
 
-# Modules
+# [Modules](./modules/)
 
 Modules extend the Cloud-Hunter platform and are located in the ./modules/ directory
-
-[Cloud-Hunter Modules](./modules/)
-
 
 ### [Hunting at Scale](./modules#hunting-at-scale)
 ```bash
@@ -309,7 +306,7 @@ $ ./modules/scale-hunt.sh
 # Hunt across multiple Lacework Tenants at once
 ```
 
-### [VirusTotal Integration](./modules#virustotal-integration)
+### [VirusTotal](./modules#virustotal-integration)
 ```bash
 (             )
  `--(_   _)--'
@@ -324,7 +321,7 @@ $ ./modules/virustotal-hunt.sh
 # Hunt for files, IP's, or Domains and check results against VirusTotal
 ```
 
-### [Greynoise Integration](./modules#greynoise-integration)
+### [Greynoise](./modules#greynoise-integration)
 ```bash
 
    /^^^^   
@@ -354,6 +351,11 @@ Contribute to the framework by opening a pull request
 
 Tracking major changes to the codebase
 ```bash
+4/4/2022 - Sub Accounts
+- Added the ability to hunt across sub-accounts
+- Added ignore casing for fuzzy searches
+- Improved query and result formatting
+
 2/14/2022 - New Module
 - Added a new Greynoise IP inspection module
 - Made query display optional and cleaned up output

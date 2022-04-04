@@ -87,6 +87,7 @@ def parse_the_things():
 def configuration(lw_env):
 	
 	global lw_account
+	global sub_account
 	global authorization_token
 
 	config_file = os.path.expanduser("~") + "/.lacework.toml"
@@ -97,23 +98,36 @@ def configuration(lw_env):
 		keyId = toml_data.get(lw_env).get('api_key')
 		secret = toml_data.get(lw_env).get('api_secret')
 		api_version = toml_data.get(lw_env).get('version')
+		try:
+			sub_account = toml_data.get(lw_env).get('subaccount')
+		except:
+			sub_account = False
 
 		# Temporary Access Token Generation
-		token_url = "https://{}.lacework.net/api/v2/access/tokens".format(lw_account)
+		token_url = f"https://{lw_account}.lacework.net/api/v2/access/tokens"
 		token_payload = json.dumps({
-		  "keyId": keyId,
-		  "expiryTime": 3600
+			"keyId": keyId,
+			"expiryTime": 3600
 		})
-		token_headers = {
-		  'X-LW-UAKS': secret,
-		  'Content-Type': 'application/json'
-		}
+		if sub_account:
+			token_headers = {
+				'X-LW-UAKS': secret,
+				'Content-Type': 'application/json',
+				'User-Agent': 'Lacework-Labs_Cloud-Hunter_v1',
+				'Account-Name': f'{sub_account}'
+			}
+		else:
+			token_headers = {
+				'X-LW-UAKS': secret,
+				'Content-Type': 'application/json',
+				'User-Agent': 'Lacework-Labs_Cloud-Hunter_v1'
+			}
 		token_response = requests.request("POST", token_url, headers=token_headers, data=token_payload)
 		json_data = json.loads(token_response.text)
 		authorization_token = json_data['token']
 	else:
-		print(f"{bcolors.BOLD}{bcolors.CYAN} {{}} {bcolors.ENDC}".format(banner))
-		print(f"[!] {bcolors.RED}{bcolors.UNDERLINE}ERROR{bcolors.ENDC}{bcolors.RED}: Missing ~/.lacework configuration file{bcolors.ENDC}")
+		print(f"{bcolors.BOLD}{bcolors.CYAN} {banner} {bcolors.ENDC}")
+		print(f"[!] {bcolors.RED}{bcolors.UNDERLINE}ERROR{bcolors.ENDC}{bcolors.RED}: Missing ~/.lacework.toml configuration file{bcolors.ENDC}")
 		print()
 		print(f"{bcolors.RED}Please install and configure the Lacework CLI before proceeding...{bcolors.ENDC}")
 		print()
@@ -149,7 +163,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				any_value = "EVENT NOT LIKE '%{}%'".format(value[1])
 			else:
-				any_value = "EVENT LIKE '%{}%'".format(value)
+				any_value = "contains(lower(EVENT), '{}')".format(value.lower())
 				joined_options['-source {}'.format(value)]='any_value'
 			joined_items[any_value]='any_value'
 
@@ -165,7 +179,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_source = "EVENT_SOURCE NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_source = "EVENT_SOURCE LIKE '%{}%'".format(value)
+				event_source = "contains(lower(EVENT_SOURCE), '{}')".format(value.lower())
 				joined_options['-source {}'.format(value)]='event_source'
 			joined_items[event_source]='event_source'
 
@@ -179,7 +193,7 @@ def craft_query(**arguments):
 					event_region = "EVENT:awsRegion IS NOT NULL"
 					joined_options['-region {}'.format(value)]='event_region'
 				else:
-					event_region = "EVENT:awsRegion = '{}'".format(value)
+					event_region = "EVENT:awsRegion = '{}'".format(value.lower())
 					joined_options['-region {}'.format(value)]='event_region'
 				joined_items[event_region]='event_region'
 			elif '!' in value:
@@ -212,7 +226,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_name = "EVENT_NAME NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_name = "EVENT_NAME LIKE '%{}%'".format(value)
+				event_name = "contains(lower(EVENT_NAME), '{}')".format(value.lower())
 				joined_options['-event {}'.format(value)]='event_name'
 			joined_items[event_name]='event_name'
 
@@ -228,7 +242,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_type = "EVENT:eventType::String NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_type = "EVENT:eventType::String LIKE '%{}%'".format(value)
+				event_type = "contains(lower(EVENT:eventType::String), '{}')".format(value.lower())
 				joined_options['-type {}'.format(value)]='event_type'
 			joined_items[event_type]='event_type'
 		
@@ -242,15 +256,15 @@ def craft_query(**arguments):
 			elif '!' in value:
 				joined_options['-username \'{}\''.format(value)]='event_username'
 				value = value.split("!")
-				event_username = """EVENT:userIdentity.userName NOT LIKE '%{}%'
-		OR EVENT:userIdentity.arn NOT LIKE '%{}%'
-		OR EVENT:responseElements.assumedRoleUser.arn NOT LIKE '%{}%'
-		OR EVENT:requestParameters.userName NOT LIKE '%{}%'""".format(value[1],value[1],value[1],value[1])
+				event_username = """(EVENT:userIdentity.userName NOT LIKE '%{}%'
+          OR EVENT:userIdentity.arn NOT LIKE '%{}%'
+          OR EVENT:responseElements.assumedRoleUser.arn NOT LIKE '%{}%'
+          OR EVENT:requestParameters.userName NOT LIKE '%{}%')""".format(value[1],value[1],value[1],value[1])
 			else:
-				event_username = """EVENT:userIdentity.userName LIKE '%{}%'
-		OR EVENT:userIdentity.arn LIKE '%{}%'
-		OR EVENT:responseElements.assumedRoleUser.arn LIKE '%{}%'
-		OR EVENT:requestParameters.userName LIKE '%{}%'""".format(value,value,value,value)
+				event_username = """(contains(lower(EVENT:userIdentity.userName), '{}')
+          OR contains(lower(EVENT:userIdentity.arn), '{}')
+          OR contains(lower(EVENT:responseElements.assumedRoleUser.arn), '{}')
+          OR contains(lower(EVENT:requestParameters.userName), '{}'))""".format(value.lower(),value.lower(),value.lower(),value.lower())
 				joined_options['-username {}'.format(value)]='event_username'
 			joined_items[event_username]='event_username'
 		
@@ -282,7 +296,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_ua = "EVENT:userAgent NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_ua = "EVENT:userAgent LIKE '%{}%'".format(value)
+				event_ua = "contains(lower(EVENT:userAgent), '{}')".format(value.lower())
 				joined_options['-userAgent {}'.format(value)]='event_ua'
 			joined_items[event_ua]='event_ua'
 
@@ -296,9 +310,9 @@ def craft_query(**arguments):
 			elif '!' in value:
 				joined_options['-reqParam \'{}\''.format(value)]='request_param'
 				value = value.split("!")
-				request_param = "EVENT:requestParameters.name NOT LIKE '%{}%'".format(value[1])
+				request_param = "EVENT:requestParameters NOT LIKE '%{}%'".format(value[1])
 			else:
-				request_param = "EVENT:requestParameters.name LIKE '%{}%'".format(value)
+				request_param = "contains(lower(EVENT:requestParameters), '{}')".format(value.lower())
 				joined_options['-reqParam {}'.format(value)]='request_param'
 			joined_items[request_param]='request_param'
 
@@ -314,7 +328,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				error_code = "ERROR_CODE NOT LIKE '%{}%'".format(value[1])
 			else:
-				error_code = "ERROR_CODE = '{}'".format(value)
+				error_code = "contains(lower(ERROR_CODE), '{}')".format(value.lower())
 				joined_options['-errorCode {}'.format(value)]='error_code'
 			joined_items[error_code]='error_code'
 
@@ -374,7 +388,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_hostname = "HOSTNAME NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_hostname = "HOSTNAME = '{}'".format(value)
+				event_hostname = "contains(lower(HOSTNAME), '{}')".format(value.lower())
 				joined_options['-hostname {}'.format(value)]='hostname'
 			joined_items[event_hostname]='hostname'
 
@@ -389,7 +403,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_operating_system = "OS NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_operating_system = "(CONTAINS(OS, '{}'))".format(value)
+				event_operating_system = "contains(lower(OS), '{}')".format(value.lower())
 				joined_options['-os {}'.format(value)]='operating_system'
 			joined_items[event_operating_system]='operating_system'
 
@@ -406,7 +420,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_filename = "FILE_NAME NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_filename = "(CONTAINS(FILE_NAME, '{}'))".format(value)
+				event_filename = "contains(lower(FILE_NAME), '{}')".format(value.lower())
 				joined_options['-filename {}'.format(value)]='filename'
 			joined_items[event_filename]='filename'
 
@@ -421,7 +435,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_filetype = "FILE_TYPE NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_filetype = "(CONTAINS(FILE_TYPE, '{}'))".format(value)
+				event_filetype = "contains(lower(FILE_TYPE), '{}')".format(value.lower())
 				joined_options['-filetype {}'.format(value)]='filetype'
 			joined_items[event_filetype]='filetype'
 
@@ -440,7 +454,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_dns = "HOSTNAME NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_dns = "(CONTAINS(HOSTNAME, '{}'))".format(value)
+				event_dns = "contains(lower(HOSTNAME), '{}')".format(value.lower())
 				joined_options['-dns {}'.format(value)]='dns'
 			joined_items[event_dns]='dns'
 
@@ -465,7 +479,7 @@ def craft_query(**arguments):
 				value = value.split("!")
 				event_cmdline = "CMDLINE NOT LIKE '%{}%'".format(value[1])
 			else:
-				event_cmdline = "(CONTAINS(CMDLINE, '{}'))".format(value)
+				event_cmdline = "contains(lower(CMDLINE), '{}')".format(value.lower())
 				joined_options['-cmdline {}'.format(value)]='cmdline'
 			joined_items[event_cmdline]='cmdline'
 
@@ -477,15 +491,20 @@ def craft_query(**arguments):
 	if argCount > 1:
 		if multiVariable == 1:
 			if var_count > 1:
-				joined_args = " AND ".join(joined_items)
+				joined_args = """
+		AND """.join(joined_items)
 				multi_joined_args = ", ".join(multi_joined_items)
-				final_joined_args = "{} AND {} IN ({})".format(joined_args, multiVariableName, multi_joined_args)
+				final_joined_args = """{} 
+		AND {}
+		IN ({})""".format(joined_args, multiVariableName, multi_joined_args)
 				query_args = final_joined_args
 			else:
 				multi_joined_args = ", ".join(multi_joined_items)
-				query_args = "{} IN ({})".format(multiVariableName, multi_joined_args)
+				query_args = """{}
+		IN ({})""".format(multiVariableName, multi_joined_args)
 		else:
-			joined_args = " AND ".join(joined_items)
+			joined_args = """
+		AND """.join(joined_items)
 			query_args = joined_args
 		cmd_options = " ".join(joined_options)
 	else:
@@ -496,267 +515,267 @@ def craft_query(**arguments):
 	if cloud_trail_activity:
 		lw_data_sauce = 'CloudTrailRawEvents'
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		CloudTrailRawEvents
-	} FILTER { 
-		%s
-	} RETURN DISTINCT {
-		INSERT_ID,
-		INSERT_TIME,
-		EVENT_TIME,
-		EVENT
-	}
+     SOURCE {
+          CloudTrailRawEvents
+     } FILTER {
+          %s
+     } RETURN DISTINCT {
+          INSERT_ID,
+          INSERT_TIME,
+          EVENT_TIME,
+          EVENT
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HE_MACHINES':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HE_MACHINES
-	} FILTER {
-		%s
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		MID,
-		HOSTNAME,
-		DOMAIN,
-		KERNEL,
-		KERNEL_RELEASE,
-		KERNEL_VERSION,
-		OS,
-		OS_VERSION,
-		OS_DESC,
-		CPU_INFO,
-		MEMORY_INFO,
-		MACHINE_ID,
-		LAST_BOOT_TIME,
-		LAST_BOOT_REASON,
-		DEFAULT_ROUTER,
-		TAGS,
-		KERNEL_ARGS,
-		ROUTE
-	}
+     SOURCE {
+          LW_HE_MACHINES
+     } FILTER {
+          %s
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          MID,
+          HOSTNAME,
+          DOMAIN,
+          KERNEL,
+          KERNEL_RELEASE,
+          KERNEL_VERSION,
+          OS,
+          OS_VERSION,
+          OS_DESC,
+          CPU_INFO,
+          MEMORY_INFO,
+          MACHINE_ID,
+          LAST_BOOT_TIME,
+          LAST_BOOT_REASON,
+          DEFAULT_ROUTER,
+          TAGS,
+          KERNEL_ARGS,
+          ROUTE
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HE_IMAGES':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HE_IMAGES
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		IMAGE_CREATED_TIME,
-		MID,
-		IMAGE_ID,
-		CONTAINER_TYPE,
-		AUTHOR,
-		REPO,
-		TAG,
-		SIZE,
-		VIRTUAL_SIZE,
-		IMAGE_VERSION,
-		ACTIVE_COUNT
-	}
+     SOURCE {
+          LW_HE_IMAGES
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          IMAGE_CREATED_TIME,
+          MID,
+          IMAGE_ID,
+          CONTAINER_TYPE,
+          AUTHOR,
+          REPO,
+          TAG,
+          SIZE,
+          VIRTUAL_SIZE,
+          IMAGE_VERSION,
+          ACTIVE_COUNT
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HE_FILES':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HE_FILES
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		MID,
-		PATH,
-		FILE_NAME,
-		INODE,
-		FILE_TYPE,
-		IS_LINK,
-		LINK_DEST_PATH,
-		LINK_ABS_DEST_PATH,
-		OWNER_UID,
-		OWNER_USERNAME,
-		OWNER_GID,
-		METADATA_HASH,
-		FILEDATA_HASH,
-		SIZE,
-		BLOCK_SIZE,
-		BLOCK_COUNT,
-		FILE_ACCESSED_TIME,
-		FILE_MODIFIED_TIME,
-		FILE_CREATED_TIME,
-		FILE_PERMISSIONS,
-		HARD_LINK_COUNT
-	}
+     SOURCE {
+          LW_HE_FILES
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          MID,
+          PATH,
+          FILE_NAME,
+          INODE,
+          FILE_TYPE,
+          IS_LINK,
+          LINK_DEST_PATH,
+          LINK_ABS_DEST_PATH,
+          OWNER_UID,
+          OWNER_USERNAME,
+          OWNER_GID,
+          METADATA_HASH,
+          FILEDATA_HASH,
+          SIZE,
+          BLOCK_SIZE,
+          BLOCK_COUNT,
+          FILE_ACCESSED_TIME,
+          FILE_MODIFIED_TIME,
+          FILE_CREATED_TIME,
+          FILE_PERMISSIONS,
+          HARD_LINK_COUNT
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HA_FILE_CHANGES':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HA_FILE_CHANGES
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		ACTIVITY_START_TIME,
-		ACTIVITY_END_TIME,
-		MID,
-		PATH,
-		ACTIVITY,
-		FILEDATA_HASH,
-		LAST_MODIFIED_TIME,
-		SIZE
-	}
+     SOURCE {
+          LW_HA_FILE_CHANGES
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          ACTIVITY_START_TIME,
+          ACTIVITY_END_TIME,
+          MID,
+          PATH,
+          ACTIVITY,
+          FILEDATA_HASH,
+          LAST_MODIFIED_TIME,
+          SIZE
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HA_DNS_REQUESTS':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HA_DNS_REQUESTS
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		MID,
-		SRV_IP_ADDR,
-		HOSTNAME,
-		HOST_IP_ADDR,
-		TTL,
-		PKTLEN
-	}
+     SOURCE {
+          LW_HA_DNS_REQUESTS
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          MID,
+          SRV_IP_ADDR,
+          HOSTNAME,
+          HOST_IP_ADDR,
+          TTL,
+          PKTLEN
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HA_USER_LOGINS':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HA_USER_LOGINS
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		LOGIN_TIME,
-		LOGOFF_TIME,
-		EVENT_TYPE,
-		MID,
-		USERNAME,
-		HOSTNAME,
-		IP_ADDR,
-		TTY,
-		UID,
-		GID
-	}
+     SOURCE {
+          LW_HA_USER_LOGINS
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          LOGIN_TIME,
+          LOGOFF_TIME,
+          EVENT_TYPE,
+          MID,
+          USERNAME,
+          HOSTNAME,
+          IP_ADDR,
+          TTY,
+          UID,
+          GID
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_CFG_AWS':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_CFG_AWS
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		QUERY_START_TIME,
-		QUERY_END_TIME,
-		ARN,
-		API_KEY,
-		SERVICE,
-		ACCOUNT_ID,
-		ACCOUNT_ALIAS,
-		RESOURCE_TYPE,
-		RESOURCE_ID,
-		RESOURCE_REGION,
-		RESOURCE_CONFIG,
-		RESOURCE_TAGS,
-		STATUS,
-		KEYS,
-		PROPS
-	}
+     SOURCE {
+          LW_CFG_AWS
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          QUERY_START_TIME,
+          QUERY_END_TIME,
+          ARN,
+          API_KEY,
+          SERVICE,
+          ACCOUNT_ID,
+          ACCOUNT_ALIAS,
+          RESOURCE_TYPE,
+          RESOURCE_ID,
+          RESOURCE_REGION,
+          RESOURCE_CONFIG,
+          RESOURCE_TAGS,
+          STATUS,
+          KEYS,
+          PROPS
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HE_CONTAINERS':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HE_CONTAINERS
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		CONTAINER_START_TIME,
-		MID,
-		CONTAINER_ID,
-		CONTAINER_TYPE,
-		CONTAINER_NAME,
-		PRIVILEGED,
-		NETWORK_MODE,
-		PID_MODE,
-		IPV4,
-		IPV6,
-		LISTEN_PORT_MAP,
-		VOLUME_MAP,
-		REPO,
-		TAG,
-		PROPS_LABEL,
-		PROPS_ENV
-	}
+     SOURCE {
+          LW_HE_CONTAINERS
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          CONTAINER_START_TIME,
+          MID,
+          CONTAINER_ID,
+          CONTAINER_TYPE,
+          CONTAINER_NAME,
+          PRIVILEGED,
+          NETWORK_MODE,
+          PID_MODE,
+          IPV4,
+          IPV6,
+          LISTEN_PORT_MAP,
+          VOLUME_MAP,
+          REPO,
+          TAG,
+          PROPS_LABEL,
+          PROPS_ENV
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HE_USERS':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HE_USERS
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		MID,
-		USERNAME,
-		PRIMARY_GROUP_NAME,
-		OTHER_GROUP_NAMES,
-		HOME_DIR
-	}
+     SOURCE {
+          LW_HE_USERS
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          MID,
+          USERNAME,
+          PRIMARY_GROUP_NAME,
+          OTHER_GROUP_NAMES,
+          HOME_DIR
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HE_PROCESSES':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HE_PROCESSES
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		PROCESS_START_TIME,
-		MID,
-		PID_HASH,
-		PID,
-		USERNAME,
-		EXE_PATH,
-		CMDLINE,
-		CWD,
-		ROOT
-	}
+     SOURCE {
+          LW_HE_PROCESSES
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          PROCESS_START_TIME,
+          MID,
+          PID_HASH,
+          PID,
+          USERNAME,
+          EXE_PATH,
+          CMDLINE,
+          CWD,
+          ROOT
+     }
 }""" % query_args
 	elif lw_data_sauce == 'LW_HA_CONNECTIONS':
 		crafted_query = """LaceworkLabs_CloudHunter {
-	SOURCE {
-		LW_HA_CONNECTIONS
-	} FILTER {
-		%s 
-	} RETURN DISTINCT {
-		RECORD_CREATED_TIME,
-		CONN_START_TIME,
-		CONN_END_TIME,
-		MID,
-		SRC_IP_ADDR,
-		SRC_PORT,
-		DST_IP_ADDR,
-		DST_PORT,
-		PROTOCOL,
-		SYN,
-		FIN,
-		LOCAL,
-		SESS_COUNT_IN,
-		SESS_COUNT_OUT,
-		PKT_PER_SESS_COUNT_IN,
-		PKT_PER_SESS_COUNT_OUT,
-		BYTES_PER_PKT_COUNT_IN,
-		BYTES_PER_PKT_COUNT_OUT,
-		SESSTIME_PER_SESS_IN,
-		SESSTIME_PER_SESS_OUT,
-		RESPTIME_PER_SESS_IN,
-		RESPTIME_PER_SESS_OUT,
-		INCOMING,
-		OUTGOING,
-		FIRST_KNOWN_TIME
-	}
+     SOURCE {
+          LW_HA_CONNECTIONS
+     } FILTER {
+          %s 
+     } RETURN DISTINCT {
+          RECORD_CREATED_TIME,
+          CONN_START_TIME,
+          CONN_END_TIME,
+          MID,
+          SRC_IP_ADDR,
+          SRC_PORT,
+          DST_IP_ADDR,
+          DST_PORT,
+          PROTOCOL,
+          SYN,
+          FIN,
+          LOCAL,
+          SESS_COUNT_IN,
+          SESS_COUNT_OUT,
+          PKT_PER_SESS_COUNT_IN,
+          PKT_PER_SESS_COUNT_OUT,
+          BYTES_PER_PKT_COUNT_IN,
+          BYTES_PER_PKT_COUNT_OUT,
+          SESSTIME_PER_SESS_IN,
+          SESSTIME_PER_SESS_OUT,
+          RESPTIME_PER_SESS_IN,
+          RESPTIME_PER_SESS_OUT,
+          INCOMING,
+          OUTGOING,
+          FIRST_KNOWN_TIME
+     }
 }""" % query_args
 
 def validate_query(queryValidation):
@@ -770,10 +789,19 @@ def validate_query(queryValidation):
 		payload = json.dumps({
 		  "queryText": "{}".format(queryValidation),
 		})
-	headers = {
-	  'Authorization': authorization_token,
-	  'Content-Type': 'application/json'
+	if sub_account:
+		headers = {
+			'Authorization': authorization_token,
+			'Content-Type': 'application/json',
+			'User-Agent': 'Lacework-Labs_Cloud-Hunter_v1',
+			'Account-Name': '{}'.format(sub_account)
 	}
+	else:
+		headers = {
+			'Authorization': authorization_token,
+			'Content-Type': 'application/json',
+			'User-Agent': 'Lacework-Labs_Cloud-Hunter_v1'
+		}
 	try:
 	    response = requests.request("POST", validation_url, headers=headers, data=payload)
 	except requests.exceptions.RequestException as e:
@@ -847,10 +875,19 @@ def hunt(exQuery):
 		    }
 		  ]
 		})
-	headers = {
-		'Authorization': authorization_token,
-		'Content-Type': 'application/json'
+	if sub_account:
+		headers = {
+			'Authorization': authorization_token,
+			'Content-Type': 'application/json',
+			'User-Agent': 'Lacework-Labs_Cloud-Hunter_v1',
+			'Account-Name': '{}'.format(sub_account)
 	}
+	else:
+		headers = {
+			'Authorization': authorization_token,
+			'Content-Type': 'application/json',
+			'User-Agent': 'Lacework-Labs_Cloud-Hunter_v1'
+		}
 	response = requests.request("POST", execute_custom_url, headers=headers, data=payload)
 	json_data = json.loads(response.text)
 	
@@ -1075,9 +1112,15 @@ def hunt(exQuery):
 			print()
 		else:
 			if cloud_trail_activity:
-				print(tabulate(events_table, headers='firstrow'))
-				print()
-				print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(event_count,time_in_days))
+				if event_count >= 50:
+					print(tabulate(events_table, headers='firstrow'))
+					print()
+					print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(event_count,time_in_days))
+				else:
+					print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(event_count,time_in_days))
+					print()
+					print(tabulate(events_table, headers='firstrow'))
+					print()
 			else:
 				print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period:".format(event_count,time_in_days))
 				print()
@@ -1227,7 +1270,7 @@ def main():
 					print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}ERROR{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
 					print()
 					print(f"Unable to parse [{args.yaml_file}]")
-					print("Please ensure the file is in YAML or raw LQL format")
+					print("Please ensure the file is in either YAML or raw LQL format")
 					print()
 	elif args.query:
 		craft_query(**query_contents)
