@@ -351,7 +351,7 @@ Contribute to the framework by opening a pull request
 
 Tracking major changes to the codebase
 ```bash
-4/4/2022 - Sub Accounts
+4/4/2022 - NoCase and Sub Accounts
 - Added the ability to hunt across sub-accounts
 - Added ignore casing for fuzzy searches
 - Improved query and result formatting
