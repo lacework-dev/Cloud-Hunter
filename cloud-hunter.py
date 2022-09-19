@@ -2,7 +2,7 @@
 
 # Cloud Hunter
 # Lacework Labs
-# v1.1 - February 2022
+# v1.2 - September 2022
 # greg.foss@lacework.net
 
 '''
@@ -807,10 +807,10 @@ def validate_query(queryValidation):
 	except requests.exceptions.RequestException as e:
 	    print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
 	    print("{}".format(e))
-	print()
 	if "data" in response.text:
 		pass
 	else:
+		print()
 		print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
 		print()
 		print(f"[POST] {response.url}")
@@ -1117,11 +1117,13 @@ def hunt(exQuery):
 					print()
 					print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(event_count,time_in_days))
 				else:
+					print()
 					print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period".format(event_count,time_in_days))
 					print()
 					print(tabulate(events_table, headers='firstrow'))
 					print()
 			else:
+				print()
 				print(f"[*] Found [{bcolors.GREEN}{{}}{bcolors.ENDC}] events over a {bcolors.GREEN}{{}}{bcolors.ENDC}-day search period:".format(event_count,time_in_days))
 				print()
 				print(event_df)

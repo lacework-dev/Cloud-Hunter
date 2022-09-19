@@ -17,17 +17,11 @@
 ```
 ### Dynamically create queries and hunt with the Lacework Query Language (LQL)
 
-Cloud-Hunter allows you to search for key data across the Lacework platform, with the advantage of crafting LQL queries for every search bring executed. This not only helps to find data quickly and easily, (even including content that isn't displayed in the console) but develop queries for ongoing monitoring as you scale the queries along with your organization's cloud security program.
+Cloud-Hunter allows you to search for key data across the Lacework platform, with the advantage of crafting LQL queries for every search being executed. This not only helps to find data quickly and easily, (even including content that isn't displayed in the console) but develop queries for ongoing monitoring as you scale the queries along with your organization's cloud security program.
 
 Works alongside the Lacework CLI and related Lacework Labs projects, LQL-Boss and LQL-Att&ck
 
 * [Lacework CLI](https://docs.lacework.com/cli)
-
-* [LQL ATT&CK](https://github.com/lacework-dev/LQL-Attack)
-
-* [LQL-Boss](https://github.com/lacework-dev/LQL-Boss)
-
-* [Rules and LQL Content](https://github.com/lacework-dev/lacework-content)
 
 * [API Docs] https://<YOUR_SUBDOMAIN_HERE>.lacework.net/api/v2/docs
 
@@ -351,6 +345,8 @@ Contribute to the framework by opening a pull request
 
 Tracking major changes to the codebase
 ```bash
+9/19/2022 - Public Release
+
 4/4/2022 - NoCase and Sub Accounts
 - Added the ability to hunt across sub-accounts
 - Added ignore casing for fuzzy searches
