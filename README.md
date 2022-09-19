@@ -19,7 +19,7 @@
 
 Cloud-Hunter allows you to search for key data across the Lacework platform, with the advantage of crafting LQL queries for every search being executed. This not only helps to find data quickly and easily, (even including content that isn't displayed in the console) but develop queries for ongoing monitoring as you scale the queries along with your organization's cloud security program.
 
-Works alongside the Lacework CLI and related Lacework Labs projects, LQL-Boss and LQL-Att&ck
+Works alongside the Lacework CLI
 
 * [Lacework CLI](https://docs.lacework.com/cli)
 
