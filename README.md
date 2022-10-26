@@ -337,7 +337,7 @@ Module core-scripts are stored within the ./modules/scripts/ directory
 
 Please feel free to reach out to Lacework Labs with ideas for improvement, queries, policies, issues, etc. 
 ```bash
-greg.foss@lacework.net  --  Lacework Labs
+cloud-hunter@lacework.net
 ```
 Contribute to the framework by opening a pull request
 
