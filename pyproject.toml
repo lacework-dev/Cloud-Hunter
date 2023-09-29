@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "cloudhunter"
+version = "0.1.0"
+description = "Dynamically generate and hunt with Lacework LQL queries quickly and efficiently"
+authors = ["Lacework Inc <tech-ally@lacework.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11,<3.12"
+toml = "0.10.2"
+pandas = "1.3.5"
+requests = "2.25.1"
+tabulate = "0.8.9"
+numpy = "1.25.0"
+yml = "0.0.1"
+PyYAML = "6.0"
+vtapi3 = "1.2.1"
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^6.0.0"
+poethepoet = "^0.23.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+[tool.poe.tasks]
+build = "poetry run pyinstaller src/cloud-hunter/__main__.py --collect-submodules application -F --name cloud-hunter --distpath ."
+clean = "rm -r build/ cloud-hunter cloud-hunter.spec"
