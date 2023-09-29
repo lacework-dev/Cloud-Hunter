@@ -54,28 +54,28 @@ banner = f'''{bcolors.BOLD}{bcolors.CYAN}                _
 
 def parse_the_things():
 	parser = argparse.ArgumentParser(description = 'Dynamically create queries and hunt with the Lacework Query Language (LQL) quickly and efficiently')
-	parser.add_argument('-environment', help = 'Lacework environment (will be set to "default" if not specified)', action = 'store', dest = 'lw_env')
-	parser.add_argument('-any', help = 'Include literally any keyword in an LQL query (Waring: may return thousands of results)', action = 'store', dest = 'anything')
-	parser.add_argument('-source', help = 'Include events by source in an LQL query', action = 'store', dest = 'evtSource')
-	parser.add_argument('-event', help = 'Include specific event type in an LQL query', action = 'store', dest = 'evtName')
-	parser.add_argument('-events', help = 'Include multiple events - Important - use this format: \"\'event1\',\'event2\'\"', action = 'store', dest = 'evtNames')
-	parser.add_argument('-type', help = 'Include a specific event type in an LQL query', action = 'store', dest = 'evtType')
-	parser.add_argument('-username', help = 'Include a username in an LQL query', action = 'store', dest = 'account')
-	parser.add_argument('-ip', help = 'Include a source IP address in an LQL query', action = 'store', dest = 'srcIp')
-	parser.add_argument('-userAgent', help = 'Include a User Agent string in an LQL query', action = 'store', dest = 'uaString')
-	parser.add_argument('-reqParam', help ='Include a Request Parameter String in an LQL query', action = 'store', dest = 'param')
-	parser.add_argument('-reqParams', help ='Include multiple Request Parameters - Important - use this format: \"\'param1\',\'param2\'\"', action = 'store', dest = 'params')
-	parser.add_argument('-region', help = 'Include region within an LQL query', action = 'store', dest = 'region')
-	parser.add_argument('-errorCode', help ='Include an error code in an LQL query', action	='store', dest = 'error')
-	parser.add_argument('-errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
-	parser.add_argument('-accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
-	parser.add_argument('-dns', help = 'Include DNS entries queried from the environment', action = 'store', dest = 'dns')
-	parser.add_argument('-os', help = 'Include activities related to the operating system name', action = 'store', dest = 'operating_system')
-	parser.add_argument('-hostname', help = 'Include activities tied to a hostname', action = 'store', dest = 'hostname')
-	parser.add_argument('-filename', help = 'Include activities tied to a filename', action = 'store', dest = 'filename')
-	parser.add_argument('-filetype', help = 'Include activities tied to a type of file', action = 'store', dest = 'filetype')
-	parser.add_argument('-cmdline', help = 'Include command line items in LQL query', action = 'store', dest = 'cmdline')
-	parser.add_argument('-hunt', help = 'Hunt by executing a raw LQL query', action = 'store', dest = 'exQuery')
+	parser.add_argument('--environment', help = 'Lacework environment (will be set to "default" if not specified)', action = 'store', dest = 'lw_env')
+	parser.add_argument('--any', help = 'Include literally any keyword in an LQL query (Waring: may return thousands of results)', action = 'store', dest = 'anything')
+	parser.add_argument('--source', help = 'Include events by source in an LQL query', action = 'store', dest = 'evtSource')
+	parser.add_argument('--event', help = 'Include specific event type in an LQL query', action = 'store', dest = 'evtName')
+	parser.add_argument('--events', help = 'Include multiple events - Important - use this format: \"\'event1\',\'event2\'\"', action = 'store', dest = 'evtNames')
+	parser.add_argument('--type', help = 'Include a specific event type in an LQL query', action = 'store', dest = 'evtType')
+	parser.add_argument('--username', help = 'Include a username in an LQL query', action = 'store', dest = 'account')
+	parser.add_argument('--ip', help = 'Include a source IP address in an LQL query', action = 'store', dest = 'srcIp')
+	parser.add_argument('--userAgent', help = 'Include a User Agent string in an LQL query', action = 'store', dest = 'uaString')
+	parser.add_argument('--reqParam', help ='Include a Request Parameter String in an LQL query', action = 'store', dest = 'param')
+	parser.add_argument('--reqParams', help ='Include multiple Request Parameters - Important - use this format: \"\'param1\',\'param2\'\"', action = 'store', dest = 'params')
+	parser.add_argument('--region', help = 'Include region within an LQL query', action = 'store', dest = 'region')
+	parser.add_argument('--errorCode', help ='Include an error code in an LQL query', action	='store', dest = 'error')
+	parser.add_argument('--errorCodes', help ='Include multiple error codes - Important - use this format: \"\'error1\',\'error2\'\"', action	='store', dest = 'errors')
+	parser.add_argument('--accessDenied', help = 'Include Access Status in LQL query - Provide: (Y/N)', action = 'store', dest = 'status')
+	parser.add_argument('--dns', help = 'Include DNS entries queried from the environment', action = 'store', dest = 'dns')
+	parser.add_argument('--os', help = 'Include activities related to the operating system name', action = 'store', dest = 'operating_system')
+	parser.add_argument('--hostname', help = 'Include activities tied to a hostname', action = 'store', dest = 'hostname')
+	parser.add_argument('--filename', help = 'Include activities tied to a filename', action = 'store', dest = 'filename')
+	parser.add_argument('--filetype', help = 'Include activities tied to a type of file', action = 'store', dest = 'filetype')
+	parser.add_argument('--cmdline', help = 'Include command line items in LQL query', action = 'store', dest = 'cmdline')
+	parser.add_argument('--hunt', help = 'Hunt by executing a raw LQL query', action = 'store', dest = 'exQuery')
 	parser.add_argument('-y', help = 'Hunt using a LQL YAML file', action = 'store', dest = 'yaml_file')
 	parser.add_argument('-t', help ='Hunt timeframe in days (default 7-days)', action = 'store', dest = 'days')
 	parser.add_argument('-q', '--query', help = 'Display the crafted query', action = 'store_true')
@@ -85,7 +85,6 @@ def parse_the_things():
 	return parser
 
 def configuration(lw_env):
-	
 	global lw_account
 	global sub_account
 	global authorization_token
@@ -136,7 +135,6 @@ def configuration(lw_env):
 		quit()
 
 def craft_query(**arguments):
-	
 	global crafted_query
 	global cmd_options
 	global cloud_trail_activity
@@ -149,7 +147,7 @@ def craft_query(**arguments):
 	for arg in arguments.items():
 		variable = arg[0]
 		value = arg[1]
-		
+
 		# ============================== CloudTrailRawEvents ============================== #
 
 		# ===== Single Variable Options ===== #
@@ -159,12 +157,12 @@ def craft_query(**arguments):
 			cloud_trail_activity = True
 			var_count += 1
 			if '!' in value:
-				joined_options['-source \'{}\''.format(value)]='any_value'
+				joined_options['--source \'{}\''.format(value)]='any_value'
 				value = value.split("!")
 				any_value = "EVENT NOT LIKE '%{}%'".format(value[1])
 			else:
 				any_value = "contains(lower(EVENT), '{}')".format(value.lower())
-				joined_options['-source {}'.format(value)]='any_value'
+				joined_options['--source {}'.format(value)]='any_value'
 			joined_items[any_value]='any_value'
 
 		# Event Source
@@ -173,14 +171,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_source = "EVENT_SOURCE IS NOT NULL"
-				joined_options['-source {}'.format(value)]='event_source'
+				joined_options['--source {}'.format(value)]='event_source'
 			elif '!' in value:
-				joined_options['-source \'{}\''.format(value)]='event_source'
+				joined_options['--source \'{}\''.format(value)]='event_source'
 				value = value.split("!")
 				event_source = "EVENT_SOURCE NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_source = "contains(lower(EVENT_SOURCE), '{}')".format(value.lower())
-				joined_options['-source {}'.format(value)]='event_source'
+				joined_options['--source {}'.format(value)]='event_source'
 			joined_items[event_source]='event_source'
 
 		# Event Region
@@ -191,13 +189,13 @@ def craft_query(**arguments):
 			if value.lower() in regions:
 				if value.lower() == 'exists':
 					event_region = "EVENT:awsRegion IS NOT NULL"
-					joined_options['-region {}'.format(value)]='event_region'
+					joined_options['--region {}'.format(value)]='event_region'
 				else:
 					event_region = "EVENT:awsRegion = '{}'".format(value.lower())
-					joined_options['-region {}'.format(value)]='event_region'
+					joined_options['--region {}'.format(value)]='event_region'
 				joined_items[event_region]='event_region'
 			elif '!' in value:
-				joined_options['-region \'{}\''.format(value)]='event_region'
+				joined_options['--region \'{}\''.format(value)]='event_region'
 				value = value.split("!")
 				if value[1] in regions:
 					event_region = "EVENT:awsRegion NOT LIKE '%{}%'".format(value[1])
@@ -213,21 +211,21 @@ def craft_query(**arguments):
 				print(f"{bcolors.CYAN}Regions:{bcolors.ENDC} {{}}".format(regions))
 				print()
 				quit()
-		
+
 		# Event Name
 		if variable == 'evtName':
 			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_name = "EVENT_NAME IS NOT NULL"
-				joined_options['-event {}'.format(value)]='event_name'
+				joined_options['--event {}'.format(value)]='event_name'
 			elif '!' in value:
-				joined_options['-event \'{}\''.format(value)]='event_name'
+				joined_options['--event \'{}\''.format(value)]='event_name'
 				value = value.split("!")
 				event_name = "EVENT_NAME NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_name = "contains(lower(EVENT_NAME), '{}')".format(value.lower())
-				joined_options['-event {}'.format(value)]='event_name'
+				joined_options['--event {}'.format(value)]='event_name'
 			joined_items[event_name]='event_name'
 
 		# Event Type
@@ -236,25 +234,25 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_type = "EVENT:eventType::String IS NOT NULL"
-				joined_options['-type {}'.format(value)]='event_type'
+				joined_options['--type {}'.format(value)]='event_type'
 			elif '!' in value:
-				joined_options['-type \'{}\''.format(value)]='event_type'
+				joined_options['--type \'{}\''.format(value)]='event_type'
 				value = value.split("!")
 				event_type = "EVENT:eventType::String NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_type = "contains(lower(EVENT:eventType::String), '{}')".format(value.lower())
-				joined_options['-type {}'.format(value)]='event_type'
+				joined_options['--type {}'.format(value)]='event_type'
 			joined_items[event_type]='event_type'
-		
+
 		# Username
 		if variable == 'username':
 			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_username = "EVENT:userIdentity.userName IS NOT NULL"
-				joined_options['-username {}'.format(value)]='event_username'
+				joined_options['--username {}'.format(value)]='event_username'
 			elif '!' in value:
-				joined_options['-username \'{}\''.format(value)]='event_username'
+				joined_options['--username \'{}\''.format(value)]='event_username'
 				value = value.split("!")
 				event_username = """(EVENT:userIdentity.userName NOT LIKE '%{}%'
           OR EVENT:userIdentity.arn NOT LIKE '%{}%'
@@ -265,39 +263,39 @@ def craft_query(**arguments):
           OR contains(lower(EVENT:userIdentity.arn), '{}')
           OR contains(lower(EVENT:responseElements.assumedRoleUser.arn), '{}')
           OR contains(lower(EVENT:requestParameters.userName), '{}'))""".format(value.lower(),value.lower(),value.lower(),value.lower())
-				joined_options['-username {}'.format(value)]='event_username'
+				joined_options['--username {}'.format(value)]='event_username'
 			joined_items[event_username]='event_username'
-		
+
 		# Source IP
 		if variable == 'srcIp':
 			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_ip = "EVENT:sourceIPAddress IS NOT NULL"
-				joined_options['-ip {}'.format(value)]='event_ip'
+				joined_options['--ip {}'.format(value)]='event_ip'
 			elif '!' in value:
-				joined_options['-ip \'{}\''.format(value)]='event_ip'
+				joined_options['--ip \'{}\''.format(value)]='event_ip'
 				value = value.split("!")
 				event_ip = "EVENT:sourceIPAddress NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_ip = "EVENT:sourceIPAddress = '{}'".format(value)
-				joined_options['-ip {}'.format(value)]='event_ip'
+				joined_options['--ip {}'.format(value)]='event_ip'
 			joined_items[event_ip]='event_ip'
-			
+
 		# User Agent
 		if variable == 'uaString':
 			cloud_trail_activity = True
 			var_count += 1
 			if value.lower() == 'exists':
 				event_ua = "EVENT:userAgent IS NOT NULL"
-				joined_options['-userAgent {}'.format(value)]='event_ua'
+				joined_options['--userAgent {}'.format(value)]='event_ua'
 			elif '!' in value:
-				joined_options['-userAgent \'{}\''.format(value)]='event_ua'
+				joined_options['--userAgent \'{}\''.format(value)]='event_ua'
 				value = value.split("!")
 				event_ua = "EVENT:userAgent NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_ua = "contains(lower(EVENT:userAgent), '{}')".format(value.lower())
-				joined_options['-userAgent {}'.format(value)]='event_ua'
+				joined_options['--userAgent {}'.format(value)]='event_ua'
 			joined_items[event_ua]='event_ua'
 
 		# Request Parameter
@@ -308,12 +306,12 @@ def craft_query(**arguments):
 				request_param = "EVENT:requestParameters.name IS NOT NULL"
 				joined_options['-request_param {}'.format(value)]='request_param'
 			elif '!' in value:
-				joined_options['-reqParam \'{}\''.format(value)]='request_param'
+				joined_options['--reqParam \'{}\''.format(value)]='request_param'
 				value = value.split("!")
 				request_param = "EVENT:requestParameters NOT LIKE '%{}%'".format(value[1])
 			else:
 				request_param = "contains(lower(EVENT:requestParameters), '{}')".format(value.lower())
-				joined_options['-reqParam {}'.format(value)]='request_param'
+				joined_options['--reqParam {}'.format(value)]='request_param'
 			joined_items[request_param]='request_param'
 
 		# Error Code
@@ -322,14 +320,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				error_code = "ERROR_CODE IS NOT NULL"
-				joined_options['-errorCode {}'.format(value)]='error_code'
+				joined_options['--errorCode {}'.format(value)]='error_code'
 			elif '!' in value:
-				joined_options['-errorCode \'{}\''.format(value)]='error_code'
+				joined_options['--errorCode \'{}\''.format(value)]='error_code'
 				value = value.split("!")
 				error_code = "ERROR_CODE NOT LIKE '%{}%'".format(value[1])
 			else:
 				error_code = "contains(lower(ERROR_CODE), '{}')".format(value.lower())
-				joined_options['-errorCode {}'.format(value)]='error_code'
+				joined_options['--errorCode {}'.format(value)]='error_code'
 			joined_items[error_code]='error_code'
 
 		# Access Denied
@@ -341,7 +339,7 @@ def craft_query(**arguments):
 			else:
 				access_status = "ERROR_CODE IS NULL"
 			joined_items[access_status]='access_level'
-			joined_options['-accessDenied {}'.format(value)]='access_level'
+			joined_options['--accessDenied {}'.format(value)]='access_level'
 
 		# ===== Multi-Variable Options ===== #
 
@@ -353,7 +351,7 @@ def craft_query(**arguments):
 			for event_value in value:
 				multi_joined_items[value]='event_value'
 			multiVariableName = "EVENT_NAME"
-			joined_options['-events \"{}\"'.format(value)]='event_value'
+			joined_options['--events \"{}\"'.format(value)]='event_value'
 
 		# Request Parameters
 		if variable == 'params':
@@ -363,7 +361,7 @@ def craft_query(**arguments):
 			for event_value in value:
 				multi_joined_items[value]='request_params'
 			multiVariableName = "EVENT:requestParameters.name"
-			joined_options['-reqParams \"{}\"'.format(value)]='request_params'
+			joined_options['--reqParams \"{}\"'.format(value)]='request_params'
 
 		# Error Codes
 		if variable == 'errors':
@@ -373,7 +371,7 @@ def craft_query(**arguments):
 			for error in value:
 				multi_joined_items[value]='errors'
 			multiVariableName = "ERROR_CODE"
-			joined_options['-errorCodes \"{}\"'.format(value)]='errors'
+			joined_options['--errorCodes \"{}\"'.format(value)]='errors'
 
 		# ============================== LW_HE_MACHINES ============================== #
 
@@ -382,14 +380,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_hostname = "HOSTNAME IS NOT NULL"
-				joined_options['-hostname {}'.format(value)]='hostname'
+				joined_options['--hostname {}'.format(value)]='hostname'
 			elif '!' in value:
-				joined_options['-hostname \'{}\''.format(value)]='hostname'
+				joined_options['--hostname \'{}\''.format(value)]='hostname'
 				value = value.split("!")
 				event_hostname = "HOSTNAME NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_hostname = "contains(lower(HOSTNAME), '{}')".format(value.lower())
-				joined_options['-hostname {}'.format(value)]='hostname'
+				joined_options['--hostname {}'.format(value)]='hostname'
 			joined_items[event_hostname]='hostname'
 
 		if variable == 'operating_system':
@@ -397,14 +395,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_operating_system = "OS IS NOT NULL"
-				joined_options['-os {}'.format(value)]='operating_system'
+				joined_options['--os {}'.format(value)]='operating_system'
 			elif '!' in value:
-				joined_options['-os \'{}\''.format(value)]='operating_system'
+				joined_options['--os \'{}\''.format(value)]='operating_system'
 				value = value.split("!")
 				event_operating_system = "OS NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_operating_system = "contains(lower(OS), '{}')".format(value.lower())
-				joined_options['-os {}'.format(value)]='operating_system'
+				joined_options['--os {}'.format(value)]='operating_system'
 			joined_items[event_operating_system]='operating_system'
 
 		# ============================== LW_HE_FILES ============================== #
@@ -414,14 +412,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_filename = "FILE_NAME IS NOT NULL"
-				joined_options['-filename {}'.format(value)]='filename'
+				joined_options['--filename {}'.format(value)]='filename'
 			elif '!' in value:
-				joined_options['-filename \'{}\''.format(value)]='filename'
+				joined_options['--filename \'{}\''.format(value)]='filename'
 				value = value.split("!")
 				event_filename = "FILE_NAME NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_filename = "contains(lower(FILE_NAME), '{}')".format(value.lower())
-				joined_options['-filename {}'.format(value)]='filename'
+				joined_options['--filename {}'.format(value)]='filename'
 			joined_items[event_filename]='filename'
 
 		if variable == 'filetype':
@@ -429,14 +427,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_filetype = "FILE_TYPE IS NOT NULL"
-				joined_options['-filetype {}'.format(value)]='filetype'
+				joined_options['--filetype {}'.format(value)]='filetype'
 			elif '!' in value:
-				joined_options['-filetype \'{}\''.format(value)]='filetype'
+				joined_options['--filetype \'{}\''.format(value)]='filetype'
 				value = value.split("!")
 				event_filetype = "FILE_TYPE NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_filetype = "contains(lower(FILE_TYPE), '{}')".format(value.lower())
-				joined_options['-filetype {}'.format(value)]='filetype'
+				joined_options['--filetype {}'.format(value)]='filetype'
 			joined_items[event_filetype]='filetype'
 
 		# ============================== LW_HA_FILE_CHANGES ============================== #
@@ -448,14 +446,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_dns = "HOSTNAME IS NOT NULL"
-				joined_options['-dns {}'.format(value)]='dns'
+				joined_options['--dns {}'.format(value)]='dns'
 			elif '!' in value:
-				joined_options['-dns \'{}\''.format(value)]='dns'
+				joined_options['--dns \'{}\''.format(value)]='dns'
 				value = value.split("!")
 				event_dns = "HOSTNAME NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_dns = "contains(lower(HOSTNAME), '{}')".format(value.lower())
-				joined_options['-dns {}'.format(value)]='dns'
+				joined_options['--dns {}'.format(value)]='dns'
 			joined_items[event_dns]='dns'
 
 		# ============================== LW_HA_USER_LOGINS ============================== #
@@ -473,14 +471,14 @@ def craft_query(**arguments):
 			var_count += 1
 			if value.lower() == 'exists':
 				event_cmdline = "CMDLINE IS NOT NULL"
-				joined_options['-cmdline {}'.format(value)]='cmdline'
+				joined_options['--cmdline {}'.format(value)]='cmdline'
 			elif '!' in value:
-				joined_options['-cmdline \'{}\''.format(value)]='cmdline'
+				joined_options['--cmdline \'{}\''.format(value)]='cmdline'
 				value = value.split("!")
 				event_cmdline = "CMDLINE NOT LIKE '%{}%'".format(value[1])
 			else:
 				event_cmdline = "contains(lower(CMDLINE), '{}')".format(value.lower())
-				joined_options['-cmdline {}'.format(value)]='cmdline'
+				joined_options['--cmdline {}'.format(value)]='cmdline'
 			joined_items[event_cmdline]='cmdline'
 
 		# ============================== LW_HA_CONNECTIONS ============================== #
@@ -494,7 +492,7 @@ def craft_query(**arguments):
 				joined_args = """
 		AND """.join(joined_items)
 				multi_joined_args = ", ".join(multi_joined_items)
-				final_joined_args = """{} 
+				final_joined_args = """{}
 		AND {}
 		IN ({})""".format(joined_args, multiVariableName, multi_joined_args)
 				query_args = final_joined_args
@@ -559,7 +557,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HE_IMAGES
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           IMAGE_CREATED_TIME,
@@ -580,7 +578,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HE_FILES
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           MID,
@@ -611,7 +609,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HA_FILE_CHANGES
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           ACTIVITY_START_TIME,
           ACTIVITY_END_TIME,
@@ -628,7 +626,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HA_DNS_REQUESTS
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           MID,
@@ -644,7 +642,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HA_USER_LOGINS
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           LOGIN_TIME,
@@ -664,7 +662,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_CFG_AWS
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           QUERY_START_TIME,
           QUERY_END_TIME,
@@ -688,7 +686,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HE_CONTAINERS
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           CONTAINER_START_TIME,
@@ -714,7 +712,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HE_USERS
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           MID,
@@ -729,7 +727,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HE_PROCESSES
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           PROCESS_START_TIME,
@@ -748,7 +746,7 @@ def craft_query(**arguments):
      SOURCE {
           LW_HA_CONNECTIONS
      } FILTER {
-          %s 
+          %s
      } RETURN DISTINCT {
           RECORD_CREATED_TIME,
           CONN_START_TIME,
@@ -782,12 +780,12 @@ def validate_query(queryValidation):
 	validation_url = "https://{}.lacework.net/api/v2/Queries/validate".format(lw_account)
 	if cloud_trail_activity:
 		payload = json.dumps({
-		  "queryText": "{}".format(queryValidation),
-		  "evaluatorId": "Cloudtrail"
+			"queryText": "{}".format(queryValidation),
+			"evaluatorId": "Cloudtrail"
 		})
 	else:
 		payload = json.dumps({
-		  "queryText": "{}".format(queryValidation),
+			"queryText": "{}".format(queryValidation),
 		})
 	if sub_account:
 		headers = {
@@ -803,10 +801,10 @@ def validate_query(queryValidation):
 			'User-Agent': 'Lacework-Labs_Cloud-Hunter_v1'
 		}
 	try:
-	    response = requests.request("POST", validation_url, headers=headers, data=payload)
+		response = requests.request("POST", validation_url, headers=headers, data=payload)
 	except requests.exceptions.RequestException as e:
-	    print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
-	    print("{}".format(e))
+		print(f"{bcolors.RED}[!] {bcolors.UNDERLINE}Query Validation Error{bcolors.ENDC}{bcolors.RED} [!]{bcolors.ENDC}")
+		print("{}".format(e))
 	if "data" in response.text:
 		pass
 	else:
@@ -845,35 +843,31 @@ def hunt(exQuery):
 	if cloud_trail_activity:
 		payload = json.dumps({
 			"query": {
-			  "evaluatorId": "Cloudtrail",
-			  "queryText": "{}".format(exQuery)
+				"evaluatorId": "Cloudtrail",
+				"queryText": "{}".format(exQuery)
 			},
-			"arguments": [
-			  {
-			    "name": "StartTimeRange",
-			    "value": "{}".format(search_range)
-			  },
-			  {
-			    "name": "EndTimeRange",
-			    "value": "{}".format(date_now)
-			  }
-			]
+			"arguments": [{
+				"name": "StartTimeRange",
+				"value": "{}".format(search_range)
+			},
+			{
+				"name": "EndTimeRange",
+				"value": "{}".format(date_now)
+			}]
 		})
 	else:
 		payload = json.dumps({
-		  "query": {
-		    "queryText": "{}".format(exQuery)
-		  },
-		  "arguments": [
-		    {
-		      "name": "StartTimeRange",
-		      "value": "{}".format(search_range)
-		    },
-		    {
-		      "name": "EndTimeRange",
-		      "value": "{}".format(date_now)
-		    }
-		  ]
+			"query": {
+				"queryText": "{}".format(exQuery)
+			},
+			"arguments": [{
+				"name": "StartTimeRange",
+				"value": "{}".format(search_range)
+			},
+			{
+				"name": "EndTimeRange",
+				"value": "{}".format(date_now)
+			}]
 		})
 	if sub_account:
 		headers = {
@@ -890,7 +884,7 @@ def hunt(exQuery):
 		}
 	response = requests.request("POST", execute_custom_url, headers=headers, data=payload)
 	json_data = json.loads(response.text)
-	
+
 	try:
 		event_df = pd.DataFrame.from_dict(json_data['data'], orient='columns')
 	except:
@@ -902,7 +896,7 @@ def hunt(exQuery):
 		print(response.text)
 		print()
 		quit()
-	
+
 	try:
 		if cloud_trail_activity:
 			event_count = len(json_data['data'])
@@ -1102,9 +1096,9 @@ def hunt(exQuery):
 			else:
 				print("For additional information, export event details to a file:")
 				if query_contents:
-					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -o <output_file.csv>{bcolors.ENDC}".format(cmd_options))
+					print(f"{bcolors.BLUE}$ lacework cloud-hunter {{}} -o <output_file.csv>{bcolors.ENDC}".format(cmd_options))
 				else:
-					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <output_file.csv>{bcolors.ENDC}")
+					print(f"{bcolors.BLUE}$ lacework cloud-hunter --hunt <query> -o <output_file.csv>{bcolors.ENDC}")
 				print()
 	elif event_count >= 2:
 		if count:
@@ -1134,19 +1128,15 @@ def hunt(exQuery):
 			else:
 				print("For additional information, export event details to a file:")
 				if query_contents:
-					print(f"{bcolors.BLUE}$ ./{script_name} {{}} -o <output_file.csv>{bcolors.ENDC}".format(cmd_options))
+					print(f"{bcolors.BLUE}$ lacework cloud-hunter {{}} -o <output_file.csv>{bcolors.ENDC}".format(cmd_options))
 				else:
-					print(f"{bcolors.BLUE}$ ./{script_name} -hunt <query> -o <output_file.csv>{bcolors.ENDC}")
+					print(f"{bcolors.BLUE}$ lacework cloud-hunter --hunt <query> -o <output_file.csv>{bcolors.ENDC}")
 				print()
 
 def main():
 	# Argument Parsing
 	parser = parse_the_things()
 	args = parser.parse_args()
-
-	# cloud-hunter script
-	global script_name
-	script_name = os.path.basename(__file__)
 
 	# Global Hunting Terms
 	global query_contents
@@ -1225,7 +1215,7 @@ def main():
 		JSON = ''
 
 	# Only query cloudtrail data if explicitly triggered
-	global cloud_trail_activity 
+	global cloud_trail_activity
 	cloud_trail_activity = False
 
 	if args.exQuery:
@@ -1293,7 +1283,7 @@ def main():
 	else:
 		print(f"{{}}".format(banner))
 		print(parser.format_help())
-		quit()
+		sys.exit()
 
 if __name__ == "__main__":
 	main()

@@ -17,13 +17,16 @@
 ```
 ### Dynamically create queries and hunt with the Lacework Query Language (LQL)
 
-Cloud-Hunter allows you to search for key data across the Lacework platform, with the advantage of crafting LQL queries for every search being executed. This not only helps to find data quickly and easily, (even including content that isn't displayed in the console) but develop queries for ongoing monitoring as you scale the queries along with your organization's cloud security program.
+Cloud-Hunter allows you to search for key data across the Lacework platform, with the advantage of crafting LQL queries
+for every search being executed. This not only helps to find data quickly and easily, (even including content that isn't
+displayed in the console) but develop queries for ongoing monitoring as you scale the queries along with your
+organization's cloud security program.
 
-Works alongside the Lacework CLI
+Works as a component of the Lacework CLI
 
 * [Lacework CLI](https://docs.lacework.com/cli)
 
-* [API Docs] https://<YOUR_SUBDOMAIN_HERE>.lacework.net/api/v2/docs
+* [API Docs](https://docs.lacework.net/api/v2/docs/)
 
 # Installation
 
@@ -38,18 +41,43 @@ $ lacework configure
 # Configuration data will be stored in the following file:
 ~/.lacework.toml
 ```
+
+Install `cloud-hunter` component:
+```bash
+$ lacework component install cloud-hunter
+```
+
+# Development Mode
+
+Once the component is installed, you can enter development mode by running:
+```
+$ lacework component dev cloud-hunter --noninteractive
+```
+
+Clone this repository at `~/.config/lacework/components/cloud-hunter`
+```
+$ cd ~/.config/lacework/components/cloud-hunter
+$ git init
+$ git remote add origin https://github.com/afiune/cloud-hunter.git
+$ git pull origin master
+```
+
+Build the component:
+```
+$ make build
+```
+
+Execute the component via `lacework cloud-hunter` ✨
+
 # Configuration
 
 Make a note of the environments configured for use with the GO-SDK. The "default" setting will be used, so if you only have one environment configured, you can proceed on to the next steps.
 ```bash
-# Install the python3 requirements:
-$ pip3 install -r requirements.txt
-
-# To run against environments other than the "default" configuration, declare using -environment:
-$ ./cloud-hunter.py -environment MyEnvironment
+# To run against environments other than the "default" configuration, declare using --environment:
+$ lacework cloud-hunter --environment MyEnvironment
 
 # Display the help menu
-$ ./cloud-hunter.py
+$ lacework cloud-hunter
 ```
 
 # Query Generation
@@ -59,7 +87,7 @@ Leverage the included command line operators to develop queries for the Lacework
 ### Query Source
 ```bash
 # Hunt for events matching an AWS event source
-$ ./cloud-hunter.py -source <AWS Event Source>
+$ lacework cloud-hunter --source <AWS Event Source>
 
 # Example Event Sources:
 iam.amazonaws.com, iam, kms, ec2, s3, etc...
@@ -70,43 +98,43 @@ iam.amazonaws.com, iam, kms, ec2, s3, etc...
 ### Events
 ```bash
 # Single Event
-$ ./cloud-hunter.py -event <AWS Event Name>
+$ lacework cloud-hunter --event <AWS Event Name>
 
 # Example Events:
 Client.DryRunOperation, ListAccessKeys, ListAttachedRolePolicies, etc.
 
 # Multiple Events
-$ ./cloud-hunter.py -events "'<AWS Event 1>', '<AWS Event 2>', '<AWS Event 3>'"
+$ lacework cloud-hunter --events "'<AWS Event 1>', '<AWS Event 2>', '<AWS Event 3>'"
 
 # Example Event Chaining:
-$ ./cloud-hunter.py -events "'ListBackupVaults', 'ListBackupJobs', 'ListBackupPlans', 'ListCopyJobs', 'ListProtectedResources', 'ListRestoreJobs'"
+$ lacework cloud-hunter --events "'ListBackupVaults', 'ListBackupJobs', 'ListBackupPlans', 'ListCopyJobs', 'ListProtectedResources', 'ListRestoreJobs'"
 ```
 
 ### Event Type
 ```bash
 # Generate a query for specific event type
-$ ./cloud-hunter.py -type AwsConsoleSignIn
+$ lacework cloud-hunter --type AwsConsoleSignIn
 ```
 
 ### Users
 ```bash
 # Generate a query for specific user activity
-$ ./cloud-hunter.py -username greg
+$ lacework cloud-hunter --username greg
 ```
 
 ### Source IP Address
 ```bash
 # Generate a query for a source IP Address
-$ ./cloud-hunter.py -ip 127.0.0.1
+$ lacework cloud-hunter --ip 127.0.0.1
 ```
 
 ### User Agent String
 ```bash
 # User Agent String by keyword
-$ ./cloud-hunter.py -userAgent aws-cli
+$ lacework cloud-hunter --userAgent aws-cli
 
 # Full user agent string - no quotes (") and escape the spaces
-$ ./cloud-hunter.py -userAgent aws-cli/1.19.59\ Python/3.9.5\ Darwin/20.6.0\ botocore/1.20.59
+$ lacework cloud-hunter --userAgent aws-cli/1.19.59\ Python/3.9.5\ Darwin/20.6.0\ botocore/1.20.59
 
 # Note that LQL is case-sensitive
 ```
@@ -114,55 +142,55 @@ $ ./cloud-hunter.py -userAgent aws-cli/1.19.59\ Python/3.9.5\ Darwin/20.6.0\ bot
 ### DNS
 ```bash
 # Search for queries to a specific domain
-$ ./cloud-hunter.py -dns evil.site.com
+$ lacework cloud-hunter --dns evil.site.com
 
 # Search for a relative domain, such as any DNS query containing .ru
-$ ./cloud-hunter.py -dns .ru
+$ lacework cloud-hunter --dns .ru
 ```
 
 ### Hostname
 ```bash
 # Search for activities involving either a specific or relative hostname
-$ ./cloud-hunter.py -hostname pwnedhost1234
+$ lacework cloud-hunter --hostname pwnedhost1234
 ```
 
 ### Filename
 ```bash
 # Search for a specific file
-$ ./cloud-hunter.py -filename potato.json
+$ lacework cloud-hunter --filename potato.json
 
 # Search for all files with a specified extension
-$ ./cloud-hunter.py -filename .sh
+$ lacework cloud-hunter --filename .sh
 ```
 
 ### Command Line
 ```bash
 # Search for any command line values
-$ ./cloud-hunter.py -cmdline netcat
+$ lacework cloud-hunter --cmdline netcat
 ```
 
 ### Request Parameters
 ```bash
 # Hunting by request parameters to look for potential injection attacks
-$ ./cloud-hunter.py -reqParam +
+$ lacework cloud-hunter --reqParam +
 
 # Multiple request parameters
-$ ./cloud-hunter.py -reqParams "'+%','@%','=%','-%'"
+$ lacework cloud-hunter --reqParams "'+%','@%','=%','-%'"
 ```
 
 ### Errors
 ```bash
 # Single Error
-$ ./cloud-hunter.py -errorCode <AWS Error Name>
+$ lacework cloud-hunter --errorCode <AWS Error Name>
 
 # Example Error:
 AccessDenied, Client.UnauthorizedOperation, etc.
 
 # Multiple Errors
-$ ./cloud-hunter.py -errorCodes "'<AWS Error 1>', '<AWS Error 2>', '<AWS Error 3>'"
+$ lacework cloud-hunter --errorCodes "'<AWS Error 1>', '<AWS Error 2>', '<AWS Error 3>'"
 
 # Example Error Chaining:
-$ ./cloud-hunter.py -errorCodes "'AccessDenied', 'Client.UnauthorizedOperation'"
+$ lacework cloud-hunter --errorCodes "'AccessDenied', 'Client.UnauthorizedOperation'"
 
 ```
 
@@ -171,26 +199,26 @@ $ ./cloud-hunter.py -errorCodes "'AccessDenied', 'Client.UnauthorizedOperation'"
 # Query for access denied events
 # Toggle 'y' to list access denied events
 # Toggle 'n' to set error type to 'null'
-$ ./cloud-hunter.py -accessDenied y
+$ lacework cloud-hunter --accessDenied y
 ```
 
 ### Query Chaining
 ```bash
 # All parameters can be chained together to develop more complex and targeted queries
 # Example:
-$ ./cloud-hunter.py -source backup -events "'ListBackupVaults', 'ListProtectedResources'" -username bob -userAgent aws-cli -accessDenied y
+$ lacework cloud-hunter --source backup --events "'ListBackupVaults', 'ListProtectedResources'" --username bob --userAgent aws-cli --accessDenied y
 ```
 
 ### Special Queries
 ```bash
 # Filter out certain values by adding '!' to each string
-$ ./cloud-hunter.py -username '!greg' -accessDenied y
+$ lacework cloud-hunter --username '!greg' --accessDenied y
 
 # Check if a certain parameter exists
-$ /cloud-hunter.py -username exists -errorCode Client.DryRunOperation
+$ /cloud-hunter.py --username exists --errorCode Client.DryRunOperation
 
 # To view the generated LQL query, append -j to the command. The will be idisplayed but will not execute
-$ /cloud-hunter.py -username exists -errorCode Client.DryRunOperation -j
+$ /cloud-hunter.py --username exists --errorCode Client.DryRunOperation -j
 ```
 
 # Hunting
@@ -201,20 +229,20 @@ For any search term, append to execute the query and view results from the past 
 ```bash
 # Default timeframe is 7-days, this can be modified with the -t parameter
 # Example search over 1-day:
-$ ./cloud-hunter.py -username bob -t 1
+$ lacework cloud-hunter --username bob -t 1
 
 # Multiple parameters example:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y
+$ lacework cloud-hunter --source backup --event ListBackupVaults --username bob --userAgent aws-cli --accessDenied y
 
 # Count the hits and do not display results to the screen
-$ ./cloud-hunter.py -username bob -c
+$ lacework cloud-hunter --username bob -c
 ```
 
 ### File-Based Rule Hunting
 
 ```bash
 # Hunting with a LQL rule that is stored in a file:
-$ ./cloud-hunter.py -y /path/to/file.yaml
+$ lacework cloud-hunter -y /path/to/file.yaml
 
 # YAML format-files are preferred
 # Raw LQL query text-files will work as well
@@ -224,10 +252,10 @@ $ ./cloud-hunter.py -y /path/to/file.yaml
 ```bash
 # Execute any LQL query directly via the -hunt option
 # Example:
-$ ./cloud-hunter.py -hunt "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
+$ lacework cloud-hunter --hunt "LaceworkLabs_CloudHunter {SOURCE {CloudTrailRawEvents} FILTER { EVENT NOT IN ('DescribeTags', 'ListGrants') AND ERROR_CODE IN ('AccessDenied', 'Client.UnauthorizedOperation') } RETURN DISTINCT {INSERT_ID, INSERT_TIME, EVENT_TIME, EVENT}}"
 
 # Hunting with a fully-formatted multi-line LQL rule:
-$ ./cloud-hunter.py -hunt """LaceworkLabs_CloudHunter {
+$ lacework cloud-hunter --hunt """LaceworkLabs_CloudHunter {
   source {
       LW_CFG_AWS_S3_GET_BUCKET_POLICY
   }
@@ -252,31 +280,31 @@ $ ./cloud-hunter.py -hunt """LaceworkLabs_CloudHunter {
 # Raw hunting can be combined with any time, output, and counting options as well...
 
 # Example hunting over a 30-day period (default is 7-days):
-$ ./cloud-hunter.py -hunt "query" -t 30
+$ lacework cloud-hunter --hunt "query" -t 30
 
 # Example counting the hits:
-$ ./cloud-hunter.py -hunt "query" -c
+$ lacework cloud-hunter --hunt "query" -c
 
 # Example with JSON output:
-$ ./cloud-hunter.py -hunt "query" -j -o filename.json
+$ lacework cloud-hunter --hunt "query" -j -o filename.json
 
 # Example with CSV output:
-$ ./cloud-hunter.py -hunt "query" -o filename.csv
+$ lacework cloud-hunter --hunt "query" -o filename.csv
 ```
 
 ### Exporting Data
 ```bash
 # View the raw query data in JSON:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -j
+$ lacework cloud-hunter --source backup --event ListBackupVaults --username bob --userAgent aws-cli --accessDenied y -j
 
 # View the raw query data in JSON and export to a file:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -j -o filename.json
+$ lacework cloud-hunter --source backup --event ListBackupVaults --username bob --userAgent aws-cli --accessDenied y -j -o filename.json
 
 # Export the full query output to CSV:
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -o filename.csv
+$ lacework cloud-hunter --source backup --event ListBackupVaults --username bob --userAgent aws-cli --accessDenied y -o filename.csv
 
 # Do not display output to screen but save the data to a CSV file.
-$ ./cloud-hunter.py -source backup -event ListBackupVaults -username bob -userAgent aws-cli -accessDenied y -o filename.csv -c
+$ lacework cloud-hunter --source backup --event ListBackupVaults --username bob --userAgent aws-cli --accessDenied y -o filename.csv -c
 # Note - the count argument only works with CSV output.
 ```
 
@@ -345,6 +373,8 @@ Contribute to the framework by opening a pull request
 
 Tracking major changes to the codebase
 ```bash
+10/01/2023 - CDK Component Release
+
 9/19/2022 - Public Release
 
 4/4/2022 - NoCase and Sub Accounts

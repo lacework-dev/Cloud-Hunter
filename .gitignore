@@ -1,2 +1,7 @@
 .DS_Store
+.dev
+.version
+.signature
 config.json
+/cloud-hunter
+build/
